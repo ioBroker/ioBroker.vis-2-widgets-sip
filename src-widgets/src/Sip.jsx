@@ -1,9 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
-import { Button, Dialog, DialogContent } from '@mui/material';
+import { Button, Chip, Dialog, DialogContent } from '@mui/material';
 import { WebSocketInterface, UA } from 'jssip';
-import { useVisualizer, models } from 'react-audio-viz';
 import Generic from './Generic';
 
 const styles = () => ({
@@ -15,21 +14,6 @@ const styles = () => ({
     },
 });
 
-const AudioViz = props => {
-    const [ReactAudioViz, initializeVisualizer] = useVisualizer({ current:props.audio });
-    props.audio.onplay = () => {
-        initializeVisualizer();
-    };
-
-    return (
-        <div>
-            <div style={{ width: '400', height: '400' }}>
-                {ReactAudioViz && <ReactAudioViz model={models.polar()} />}
-            </div>
-        </div>
-    );
-};
-
 class Sip extends Generic {
     divRef = React.createRef();
 
@@ -38,6 +22,14 @@ class Sip extends Generic {
     sipUA = null;
 
     audio = document.createElement('audio');
+
+    constructor(props) {
+        super(props);
+
+        this.state.peak = 0;
+        this.status = 'idle';
+        this.connectionStatus = 'disconnected';
+    }
 
     static getWidgetInfo() {
         return {
@@ -65,6 +57,26 @@ class Sip extends Generic {
                         },
                     ],
                 },
+                {
+                    name: 'sip',
+                    fields: [
+                        {
+                            name: 'server',
+                            label: 'server',
+                            type: 'text',
+                        },
+                        {
+                            name: 'user',
+                            label: 'user',
+                            type: 'text',
+                        },
+                        {
+                            name: 'password',
+                            label: 'password',
+                            type: 'password',
+                        },
+                    ],
+                }
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -80,6 +92,40 @@ class Sip extends Generic {
         return Sip.getWidgetInfo();
     }
 
+    answer = session => {
+        session.answer();
+        this.setState({ status: 'active' });
+        session.connection.onaddstream = e => {
+            this.audio.srcObject = e.stream;
+            this.audio.play();
+            window.audio = this.audio;
+
+            const audioContext = new AudioContext();
+            const source = audioContext.createMediaStreamSource(e.stream);
+            const analyser = audioContext.createAnalyser();
+
+            source.connect(analyser);
+            analyser.connect(audioContext.destination);
+
+            analyser.fftSize = 64;
+
+            const frequencyData = new Uint8Array(analyser.frequencyBinCount);
+            analyser.getByteFrequencyData(frequencyData);
+
+            const update = () => {
+                analyser.getByteFrequencyData(frequencyData);
+                const peakFrequency = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length;
+                this.setState({ peak: peakFrequency });
+            };
+
+            const interval = setInterval(update, 100);
+            session.on('ended', () => {
+                clearInterval(interval);
+                this.setState({ peak: 0, status: 'idle' });
+            });
+        };
+    };
+
     async propertiesUpdate() {
         if (this.sipSocket) {
             this.sipUA.stop();
@@ -94,35 +140,14 @@ class Sip extends Generic {
         });
 
         this.sipUA.on('newRTCSession', data => {
-            data.session.answer();
             window.data = data;
+            this.setState({ status: 'ringing', session: data.session });
             console.log(data.session.connection);
-            data.session.connection.onaddstream = e => {
-                this.audio.srcObject = e.stream;
-                this.audio.play();
-                window.audio = this.audio;
-
-                const audioContext = new AudioContext();
-                const source = audioContext.createMediaStreamSource(e.stream);
-                const analyser = audioContext.createAnalyser();
-
-                source.connect(analyser);
-                analyser.connect(audioContext.destination);
-
-                analyser.fftSize = 64;
-
-                const frequencyData = new Uint8Array(analyser.frequencyBinCount);
-                analyser.getByteFrequencyData(frequencyData);
-
-                function update() {
-                    analyser.getByteFrequencyData(frequencyData);
-                    const peak_frequency = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length;
-                    console.log(peak_frequency);
-                }
-                
-                setInterval(update, 1000);
-            };
         });
+
+        this.sipUA.on('connecting', () => this.setState({ connectionStatus: 'connecting' }));
+        this.sipUA.on('connected', () => this.setState({ connectionStatus: 'connected' }));
+        this.sipUA.on('disconnected', () => this.setState({ connectionStatus: 'disconnected' }));
 
         this.sipUA.start();
     }
@@ -144,13 +169,49 @@ class Sip extends Generic {
 
     }
 
+    disconnect = () => {
+        this.state.session.terminate();
+        this.setState({ status: 'idle' });
+    };
+
     renderWidgetBody(props) {
         super.renderWidgetBody(props);
 
         const content = <div
             className={this.props.classes.content}
+            style={{
+                backgroundColor: this.state.peak ? `rgba(0, 0, ${(this.state.peak / 40) * 255}, 0.4)` : undefined,
+                transition: 'background-image 0.2s ease-in-out',
+                borderRadius: '50%',
+            }}
         >
-            <AudioViz audio={this.audio} />
+            <div>
+                {this.state.status === 'ringing' && <>
+                    <Button
+                        variant="contained"
+                        color="primary"
+                        onClick={() => this.answer(this.state.session)}
+                    >
+                Answer
+                    </Button>
+                    <Button
+                        variant="contained"
+                        color="secondary"
+                        onClick={() => this.disconnect()}
+                    >
+                Reject
+                    </Button>
+                </>}
+                {this.state.status === 'active' && <Button
+                    variant="contained"
+                    color="secondary"
+                    onClick={() => this.disconnect()}
+                >
+                Hangup
+                </Button>}
+                <Chip label={this.state.connectionStatus} />
+                {this.state.peak}
+            </div>
         </div>;
 
         return this.wrapContent(
