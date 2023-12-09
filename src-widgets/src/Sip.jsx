@@ -1,7 +1,10 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
-import { Button, Chip, Dialog, DialogContent } from '@mui/material';
+import {
+    Button, Chip, Dialog, DialogContent,
+} from '@mui/material';
+import { Call, CallEnd } from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
 import Generic from './Generic';
 
@@ -13,6 +16,21 @@ const styles = () => ({
         height: '100%',
     },
 });
+
+const colors = {
+    connected: {
+        backgroundColor: 'green',
+        color: 'white',
+    },
+    connecting: {
+        backgroundColor: 'yellow',
+        color: 'black',
+    },
+    disconnected: {
+        backgroundColor: 'red',
+        color: 'white',
+    },
+};
 
 class Sip extends Generic {
     divRef = React.createRef();
@@ -27,7 +45,7 @@ class Sip extends Generic {
         super(props);
 
         this.state.peak = 0;
-        this.status = 'idle';
+        this.state.status = 'idle';
         this.connectionStatus = 'disconnected';
     }
 
@@ -76,7 +94,7 @@ class Sip extends Generic {
                             type: 'password',
                         },
                     ],
-                }
+                },
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -174,45 +192,86 @@ class Sip extends Generic {
         this.setState({ status: 'idle' });
     };
 
-    renderWidgetBody(props) {
-        super.renderWidgetBody(props);
-
-        const content = <div
+    renderContent() {
+        return <div
             className={this.props.classes.content}
-            style={{
-                backgroundColor: this.state.peak ? `rgba(0, 0, ${(this.state.peak / 40) * 255}, 0.4)` : undefined,
-                transition: 'background-image 0.2s ease-in-out',
-                borderRadius: '50%',
-            }}
         >
-            <div>
+            <div
+                style={{
+                    background: this.state.peak ? `radial-gradient(rgba(0, 0, ${(this.state.peak / 40) * 255}, 0.4), rgba(0,0,0,0))` : undefined,
+                    transition: 'background-image 0.2s ease-in-out',
+                    borderRadius: '50%',
+                    height: '100%',
+                }}
+            >
+            </div>
+            <div style={{
+                justifySelf: 'center',
+            }}
+            >
                 {this.state.status === 'ringing' && <>
                     <Button
                         variant="contained"
-                        color="primary"
+                        style={{
+                            backgroundColor: 'green',
+                            color: 'white',
+                        }}
                         onClick={() => this.answer(this.state.session)}
+                        startIcon={<Call />}
                     >
                 Answer
                     </Button>
                     <Button
                         variant="contained"
+                        style={{
+                            backgroundColor: 'red',
+                            color: 'white',
+                        }}
                         color="secondary"
                         onClick={() => this.disconnect()}
+                        startIcon={<CallEnd />}
                     >
                 Reject
                     </Button>
                 </>}
                 {this.state.status === 'active' && <Button
                     variant="contained"
+                    style={{
+                        backgroundColor: 'red',
+                        color: 'white',
+                    }}
                     color="secondary"
                     onClick={() => this.disconnect()}
+                    startIcon={<CallEnd />}
                 >
                 Hangup
                 </Button>}
-                <Chip label={this.state.connectionStatus} />
+            </div>
+            <div>
+                <Chip label={this.state.connectionStatus} style={colors[this.state.connectionStatus]} />
                 {this.state.peak}
             </div>
         </div>;
+    }
+
+    renderDialog() {
+        return <Dialog
+            open={this.state.rxData.dialog && this.state.status !== 'idle'}
+            fullWidth
+        >
+            <DialogContent style={{ height: '80vh' }}>
+                {this.renderContent()}
+            </DialogContent>
+        </Dialog>;
+    }
+
+    renderWidgetBody(props) {
+        super.renderWidgetBody(props);
+
+        const content = <>
+            {!this.state.rxData.dialog && this.renderContent()}
+            {this.renderDialog()}
+        </>;
 
         return this.wrapContent(
             content,
