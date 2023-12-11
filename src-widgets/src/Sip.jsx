@@ -146,6 +146,8 @@ class Sip extends Generic {
 
     async propertiesUpdate() {
         if (this.sipSocket) {
+            this.setState({ status: 'idle', connectionStatus: 'disconnected' });
+            this.sipUA.removeAllListeners();
             this.sipUA.stop();
             this.sipSocket.disconnect();
         }
@@ -181,10 +183,6 @@ class Sip extends Generic {
 
     async onRxDataChanged() {
         await this.propertiesUpdate();
-    }
-
-    componentDidUpdate() {
-
     }
 
     disconnect = () => {
