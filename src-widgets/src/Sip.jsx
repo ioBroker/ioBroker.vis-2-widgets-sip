@@ -1,8 +1,8 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
 import {
-    Button, Chip, Dialog, DialogContent,
+    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
 } from '@mui/material';
 import { Call, CallEnd } from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
@@ -30,6 +30,60 @@ const colors = {
         backgroundColor: 'red',
         color: 'white',
     },
+};
+
+const CameraField = props => {
+    const [cameras, setCameras] = React.useState(null);
+    const [camera, setCamera] = React.useState(props.data.camera || '');
+
+    useEffect(() => {
+        (async () => {
+            const _cameras = [];
+            const instances = await props.context.socket.getAdapterInstances('cameras');
+            instances.forEach(instance => {
+                const instanceId = instance._id.split('.').pop();
+                console.log(instance.native.cameras);
+                instance.native.cameras.forEach(iCamera => {
+                    _cameras.push({
+                        enabled: iCamera.enabled !== false,
+                        value: `${instanceId}/${iCamera.name}`,
+                        label: `cameras.${instanceId}/${iCamera.name}`,
+                        subLabel: `${iCamera.desc}/${iCamera.ip}`,
+                    });
+                });
+            });
+            setCameras(_cameras);
+        })();
+    }, [props.context.socket]);
+
+    return cameras ? <Select
+        fullWidth
+        variant="standard"
+        value={camera}
+        onChange={e => {
+            props.setData({ camera: e.target.value });
+            setCamera(e.target.value);
+        }}
+    >
+        {cameras.map(iCamera => <MenuItem
+            key={iCamera.value}
+            value={iCamera.value}
+            style={{ display: 'block', opacity: iCamera.enabled ? 1 : 0.5 }}
+        >
+            <div>{iCamera.label}</div>
+            <div style={{ fontSize: 10, fontStyle: 'italic', opacity: 0.7 }}>{iCamera.subLabel}</div>
+            {!iCamera.enabled ? <div
+                style={{
+                    fontSize: 10,
+                    fontStyle: 'italic',
+                    opacity: 0.7,
+                    color: 'red',
+                }}
+            >
+                {Generic.t('disabled')}
+            </div> : null}
+        </MenuItem>)}
+    </Select> : <CircularProgress />;
 };
 
 class Sip extends Generic {
@@ -81,17 +135,77 @@ class Sip extends Generic {
                         {
                             name: 'server',
                             label: 'server',
+                            tooltip: 'server_tooltip',
                             type: 'text',
                         },
                         {
                             name: 'user',
                             label: 'user',
+                            tooltip: 'user_tooltip',
                             type: 'text',
                         },
                         {
                             name: 'password',
                             label: 'password',
                             type: 'password',
+                        },
+                        {
+                            name: 'dialog',
+                            label: 'dialog',
+                            type: 'checkbox',
+                        },
+                    ],
+                },
+                {
+                    name: 'camera',
+                    fields: [
+                        {
+                            label: 'Camera',
+                            name: 'camera',
+                            type: 'custom',
+                            component: (field, data, setData, props) => <CameraField
+                                field={field}
+                                data={data}
+                                setData={setData}
+                                context={props.context}
+                            />,
+                        },
+                        {
+                            name: 'pollingInterval',
+                            label: 'pollingInterval',
+                            tooltip: 'tooltip_ms',
+                            type: 'number',
+                            default: 500,
+                        },
+                        {
+                            name: 'pollingIntervalFull',
+                            label: 'pollingIntervalFull',
+                            tooltip: 'tooltip_ms',
+                            type: 'number',
+                            default: 300,
+                        },
+                        {
+                            name: 'noCacheByFull',
+                            label: 'noCacheByFull',
+                            type: 'checkbox',
+                        },
+                        {
+                            name: 'rotate',
+                            label: 'rotate',
+                            type: 'select',
+                            noTranslation: true,
+                            options: [
+                                { value: 0, label: '0°' },
+                                { value: 90, label: '90°' },
+                                { value: 180, label: '180°' },
+                                { value: 270, label: '270°' },
+                            ],
+                        },
+                        {
+                            name: 'width',
+                            label: 'videoWidth',
+                            type: 'number',
+                            tooltip: 'tooltip_videoWidth',
                         },
                     ],
                 },

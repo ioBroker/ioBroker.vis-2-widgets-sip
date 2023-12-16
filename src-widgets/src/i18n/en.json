@@ -1,1 +1,4 @@
-{}
+{
+    "server_tooltip": "Example: wss:/iobroker.net:8089/ws",
+    "user_tooltip": "Example: sip:1060@iobroker.net"
+}
