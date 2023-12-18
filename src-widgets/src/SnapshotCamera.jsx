@@ -1,14 +1,6 @@
 import React from 'react';
 import { withStyles } from '@mui/styles';
-import {
-    Button,
-    Dialog, DialogActions, DialogContent, DialogTitle,
-} from '@mui/material';
-
-import { Close } from '@mui/icons-material';
-
 import Generic from './Generic';
-import { CameraField } from './RtspCamera';
 
 const styles = () => ({
     camera: {
@@ -16,11 +8,6 @@ const styles = () => ({
         height: '100%',
         objectFit: 'contain',
         cursor: 'pointer',
-    },
-    fullCamera: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
     },
     imageContainer: {
         flex: 1,
@@ -36,90 +23,10 @@ class SnapshotCamera extends React.Component {
         super(props);
         this.videoInterval = null;
         this.videoRef = React.createRef();
-        this.fullVideoRef = React.createRef();
         this.currentCam = null;
-        this.state.full = false;
+        this.state = {};
         this.state.alive = false;
         this.state.error = false;
-    }
-
-    static getWidgetInfo() {
-        return {
-            id: 'tplCameras2SnapshotCamera',
-            visSet: 'cameras',
-            visName: 'Polling Camera',
-            visWidgetLabel: 'Polling Camera',
-            visAttrs: [
-                {
-                    name: 'common',
-                    fields: [
-                        {
-                            name: 'noCard',
-                            label: 'without_card',
-                            type: 'checkbox',
-                        },
-                        {
-                            name: 'widgetTitle',
-                            label: 'name',
-                            hidden: '!!data.noCard',
-                        },
-                        {
-                            name: 'pollingInterval',
-                            label: 'pollingInterval',
-                            tooltip: 'tooltip_ms',
-                            type: 'number',
-                            default: 500,
-                        },
-                        {
-                            name: 'pollingIntervalFull',
-                            label: 'pollingIntervalFull',
-                            tooltip: 'tooltip_ms',
-                            type: 'number',
-                            default: 300,
-                        },
-                        {
-                            name: 'noCacheByFull',
-                            label: 'noCacheByFull',
-                            type: 'checkbox',
-                        },
-                        {
-                            name: 'rotate',
-                            label: 'rotate',
-                            type: 'select',
-                            noTranslation: true,
-                            options: [
-                                { value: 0, label: '0°' },
-                                { value: 90, label: '90°' },
-                                { value: 180, label: '180°' },
-                                { value: 270, label: '270°' },
-                            ],
-                        },
-                        {
-                            label: 'Camera',
-                            name: 'camera',
-                            type: 'custom',
-                            component: (field, data, setData, props) => <CameraField
-                                field={field}
-                                data={data}
-                                setData={setData}
-                                context={props.context}
-                            />,
-                        },
-                    ],
-                },
-            ],
-            visDefaultStyle: {
-                width: '100%',
-                height: 240,
-                position: 'relative',
-            },
-            visPrev: 'widgets/cameras/img/prev_snapshot.png',
-        };
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
-        return SnapshotCamera.getWidgetInfo();
     }
 
     static getNameAndInstance(value) {
@@ -136,17 +43,12 @@ class SnapshotCamera extends React.Component {
         };
     }
 
-    getImageWidth(isFull) {
-        isFull = isFull === undefined ? this.state.full : isFull;
-        if (isFull && this.fullVideoRef.current) {
-            return this.fullVideoRef.current?.parentElement.clientWidth || 0;
-        }
-
+    getImageWidth() {
         return this.videoRef.current?.parentElement.clientWidth || 0;
     }
 
     async subscribeOnAlive() {
-        const data = SnapshotCamera.getNameAndInstance(this.state.rxData.camera);
+        const data = SnapshotCamera.getNameAndInstance(this.props.rxData.camera);
 
         if (this.subsribedOnAlive !== (data ? data.instanceId : null)) {
             if (this.subsribedOnAlive) {
@@ -181,9 +83,6 @@ class SnapshotCamera extends React.Component {
                     this.loading = false;
                 };
             }
-            if (this.fullVideoRef.current && this.state.full) {
-                this.fullVideoRef.current.src = this.getUrl(true);
-            }
         }
     };
 
@@ -193,12 +92,12 @@ class SnapshotCamera extends React.Component {
             this.pollingInterval = null;
         }
         if (this.state.alive) {
-            this.pollingInterval = setInterval(this.updateImage, parseInt(this.state.full ? this.state.rxData.pollingIntervalFull : this.state.rxData.pollingInterval, 10) || 500);
+            this.pollingInterval = setInterval(this.updateImage, parseInt(this.props.rxData.pollingInterval, 10) || 500);
         }
     }
 
     onAliveChanged = (id, state) => {
-        const data = SnapshotCamera.getNameAndInstance(this.state.rxData.camera);
+        const data = SnapshotCamera.getNameAndInstance(this.props.rxData.camera);
         if (data && id === `system.adapter.cameras.${data.instanceId}.alive`) {
             const alive = !!(state?.val);
             if (alive !== this.state.alive) {
@@ -208,17 +107,16 @@ class SnapshotCamera extends React.Component {
     };
 
     componentDidMount() {
-        super.componentDidMount();
-
+        this.props.onMount(this);
         this.subscribeOnAlive();
     }
 
-    async onRxDataChanged(/* prevRxData */) {
+    onRxDataChanged = async (/* prevRxData */) => {
         await this.subscribeOnAlive();
-    }
+    };
 
     componentWillUnmount() {
-        super.componentWillUnmount();
+        this.props.onUnmount();
         this.pollingInterval && clearInterval(this.pollingInterval);
         this.pollingInterval = null;
 
@@ -228,49 +126,14 @@ class SnapshotCamera extends React.Component {
         }
     }
 
-    renderDialog(url) {
-        return this.state.full ? <Dialog
-            fullWidth
-            maxWidth="lg"
-            open={!0}
-            onClose={() => this.setState({ full: false }, () => this.restartPollingInterval())}
-        >
-            <DialogTitle>{this.state.rxData.widgetTitle}</DialogTitle>
-            <DialogContent>
-                <div className={this.props.classes.imageContainer}>
-                    <img
-                        src={url}
-                        ref={this.fullVideoRef}
-                        className={this.props.classes.fullCamera}
-                        alt={this.state.rxData.camera}
-                    />
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    onClick={e => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        this.setState({ full: false }, () => this.restartPollingInterval());
-                    }}
-                    startIcon={<Close />}
-                    color="primary"
-                    variant="contained"
-                >
-                    {Generic.t('Close')}
-                </Button>
-            </DialogActions>
-        </Dialog> : null;
-    }
-
-    getUrl(isFull) {
-        if (this.state.rxData.camera) {
-            const url = `../cameras.${this.state.rxData.camera}?`;
+    getUrl() {
+        if (this.props.rxData.camera) {
+            const url = `../cameras.${this.props.rxData.camera}?`;
             const params = [
                 `ts=${Date.now()}`,
-                `w=${this.getImageWidth(isFull)}`,
-                `noCache=${isFull ? this.state.rxData.noCacheByFull : false}`,
-                this.state.rxData.rotate ? `angle=${this.state.rxData.rotate}` : '',
+                `w=${this.getImageWidth()}`,
+                `noCache=${false}`,
+                this.props.rxData.rotate ? `angle=${this.props.rxData.rotate}` : '',
             ];
             return url + params.filter(p => p).join('');
         }
@@ -283,18 +146,17 @@ class SnapshotCamera extends React.Component {
 
         const content = <div
             className={this.props.classes.imageContainer}
-            onClick={() => !this.state.error && this.setState({ full: true }, () => this.restartPollingInterval())}
         >
             {!this.state.alive ? <div
                 style={{ position: 'absolute', top: 20, left: 0 }}
             >
-                {Generic.t('Camera instance %s inactive', (this.state.rxData.camera || '').split('/')[0])}
+                {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
             </div> : null}
             {url ? <img
                 src={url}
                 ref={this.videoRef}
                 className={this.props.classes.camera}
-                alt={this.state.rxData.camera}
+                alt={this.props.rxData.camera}
             /> : Generic.t('No camera selected')}
             {this.state.alive && this.state.error ? <div
                 style={{
@@ -309,18 +171,9 @@ class SnapshotCamera extends React.Component {
                 </div>
                 <div>{this.getUrl(true)}</div>
             </div> : null}
-            {this.renderDialog(url)}
         </div>;
 
-        if (this.state.rxData.noCard || props.widget.usedInWidget) {
-            return content;
-        }
-
-        return this.wrapContent(content, null, {
-            boxSizing: 'border-box',
-            paddingBottom: 10,
-            height: '100%',
-        });
+        return content;
     }
 }
 

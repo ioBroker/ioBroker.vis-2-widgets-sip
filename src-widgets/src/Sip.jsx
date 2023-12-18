@@ -7,12 +7,14 @@ import {
 import { Call, CallEnd } from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
 import Generic from './Generic';
+import SnapshotCamera from './SnapshotCamera';
+import RtspCamera from './RtspCamera';
 
 const styles = () => ({
     content: {
         width: '100%',
         display: 'grid',
-        gridTemplateRows: 'auto min-content min-content',
+        gridTemplateRows: 'auto auto min-content min-content',
         height: '100%',
     },
 });
@@ -95,6 +97,8 @@ class Sip extends Generic {
 
     audio = document.createElement('audio');
 
+    camera = null;
+
     constructor(props) {
         super(props);
 
@@ -176,18 +180,6 @@ class Sip extends Generic {
                             tooltip: 'tooltip_ms',
                             type: 'number',
                             default: 500,
-                        },
-                        {
-                            name: 'pollingIntervalFull',
-                            label: 'pollingIntervalFull',
-                            tooltip: 'tooltip_ms',
-                            type: 'number',
-                            default: 300,
-                        },
-                        {
-                            name: 'noCacheByFull',
-                            label: 'noCacheByFull',
-                            type: 'checkbox',
                         },
                         {
                             name: 'rotate',
@@ -297,6 +289,9 @@ class Sip extends Generic {
 
     async onRxDataChanged() {
         await this.propertiesUpdate();
+        if (this.camera) {
+            this.camera.onRxDataChanged();
+        }
     }
 
     disconnect = () => {
@@ -304,10 +299,22 @@ class Sip extends Generic {
         this.setState({ status: 'idle' });
     };
 
+    renderCamera() {
+        return <SnapshotCamera
+            {...this.props}
+            rxData={this.state.rxData}
+            onMount={camera => this.camera = camera}
+            onUnmount={() => this.camera = null}
+        />;
+    }
+
     renderContent() {
         return <div
             className={this.props.classes.content}
         >
+            <div>
+                {this.renderCamera()}
+            </div>
             <div
                 style={{
                     background: this.state.peak ? `radial-gradient(rgba(0, 0, ${(this.state.peak / 40) * 255}, 0.4), rgba(0,0,0,0))` : undefined,

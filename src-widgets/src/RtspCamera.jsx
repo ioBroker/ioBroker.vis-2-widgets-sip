@@ -1,15 +1,8 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { withStyles } from '@mui/styles';
 import {
-    Button,
-    CircularProgress, Dialog,
-    DialogActions, DialogContent,
-    DialogTitle,
-    MenuItem,
-    Select,
+    CircularProgress,
 } from '@mui/material';
-
-import { Close } from '@mui/icons-material';
 
 import Generic from './Generic';
 
@@ -19,11 +12,6 @@ const styles = () => ({
         height: '100%',
         objectFit: 'contain',
         cursor: 'pointer',
-    },
-    fullCamera: {
-        width: '100%',
-        height: '100%',
-        objectFit: 'contain',
     },
     imageContainer: {
         flex: 1,
@@ -39,68 +27,9 @@ class RtspCamera extends React.Component {
         super(props);
         this.videoInterval = null;
         this.videoRef = React.createRef();
-        this.fullVideoRef = React.createRef();
         this.currentCam = null;
-        this.state.full = false;
+        this.state = {};
         this.state.alive = false;
-    }
-
-    static getWidgetInfo() {
-        return {
-            id: 'tplCameras2RtspCamera',
-            visSet: 'cameras',
-            visName: 'RTSP Camera',
-            visWidgetLabel: 'RTSP Camera',
-            visWidgetSetLabel: 'Cameras',
-            visSetLabel: 'Cameras',
-            visSetColor: '#9f0026',
-            visAttrs: [
-                {
-                    name: 'common',
-                    fields: [
-                        {
-                            name: 'noCard',
-                            label: 'without_card',
-                            type: 'checkbox',
-                        },
-                        {
-                            name: 'widgetTitle',
-                            label: 'name',
-                            hidden: '!!data.noCard',
-                        },
-                        {
-                            name: 'width',
-                            label: 'videoWidth',
-                            type: 'number',
-                            tooltip: 'tooltip_videoWidth',
-                        },
-                        {
-                            label: 'Camera',
-                            name: 'camera',
-                            type: 'custom',
-                            component: (field, data, setData, props) => <CameraField
-                                field={field}
-                                rtsp
-                                data={data}
-                                setData={setData}
-                                context={props.context}
-                            />,
-                        },
-                    ],
-                },
-            ],
-            visDefaultStyle: {
-                width: '100%',
-                height: 240,
-                position: 'relative',
-            },
-            visPrev: 'widgets/cameras/img/prev_camera.png',
-        };
-    }
-
-    // eslint-disable-next-line class-methods-use-this
-    getWidgetInfo() {
-        return RtspCamera.getWidgetInfo();
     }
 
     static drawCamera(ref, data) {
@@ -148,9 +77,6 @@ class RtspCamera extends React.Component {
             }
 
             RtspCamera.drawCamera(this.videoRef, state.val);
-            if (this.state.full) {
-                RtspCamera.drawCamera(this.fullVideoRef, state.val);
-            }
         }
     };
 
@@ -182,9 +108,6 @@ class RtspCamera extends React.Component {
                 this.setState({ loading: false });
             }
             RtspCamera.drawCamera(this.videoRef, data);
-            if (this.state.full) {
-                RtspCamera.drawCamera(this.fullVideoRef, data);
-            }
         }
     };
 
@@ -192,7 +115,7 @@ class RtspCamera extends React.Component {
         if (this.useMessages === undefined) {
             this.useMessages = await this.props.context.socket.checkFeatureSupported('INSTANCE_MESSAGES');
         }
-        if (this.state.rxData.camera !== this.currentCam) {
+        if (this.props.rxData.camera !== this.currentCam) {
             // check if camera instance is alive
             if (this.state.alive) {
                 // this.width = this.getImageWidth();
@@ -209,9 +132,9 @@ class RtspCamera extends React.Component {
                 }
 
                 // subscribe on new camera
-                if (this.state.rxData.camera) {
+                if (this.props.rxData.camera) {
                     this.setState({ loading: true });
-                    const { instanceId, name } = RtspCamera.getNameAndInstance(this.state.rxData.camera);
+                    const { instanceId, name } = RtspCamera.getNameAndInstance(this.props.rxData.camera);
                     if (this.useMessages) {
                         await this.props.context.socket.subscribeOnInstance(
                             `cameras.${instanceId}`,
@@ -232,7 +155,7 @@ class RtspCamera extends React.Component {
                         context.clearRect(0, 0, canvas.width, canvas.height);
                     }
                 }
-                this.currentCam = this.state.rxData.camera;
+                this.currentCam = this.props.rxData.camera;
             } else if (this.currentCam) {
                 // not alive
                 const { instanceId, name } = RtspCamera.getNameAndInstance(this.currentCam);
@@ -269,20 +192,12 @@ class RtspCamera extends React.Component {
         }
     }
 
-    getImageWidth(isFull) {
-        isFull = isFull === undefined ? this.state.full : isFull;
-        // if (parseInt(this.state.rxData.width, 10)) {
-        //    return parseInt(this.state.rxData.width, 10);
-        // }
-        if (isFull && this.fullVideoRef.current) {
-            return this.fullVideoRef.current.parentElement.clientWidth || 0;
-        }
-
+    getImageWidth() {
         return this.videoRef.current?.parentElement.clientWidth || 0;
     }
 
     async subscribeOnAlive() {
-        const data = RtspCamera.getNameAndInstance(this.state.rxData.camera);
+        const data = RtspCamera.getNameAndInstance(this.props.rxData.camera);
 
         if (this.subsribedOnAlive !== (data ? data.instanceId : null)) {
             if (this.subsribedOnAlive) {
@@ -297,7 +212,7 @@ class RtspCamera extends React.Component {
     }
 
     onAliveChanged = (id, state) => {
-        const data = RtspCamera.getNameAndInstance(this.state.rxData.camera);
+        const data = RtspCamera.getNameAndInstance(this.props.rxData.camera);
         if (data && id === `system.adapter.cameras.${data.instanceId}.alive`) {
             const alive = !!(state?.val);
             if (alive !== this.state.alive) {
@@ -307,7 +222,7 @@ class RtspCamera extends React.Component {
     };
 
     componentDidMount() {
-        super.componentDidMount();
+        this.props.onMount(this);
         setTimeout(() => this.propertiesUpdate(), 100);
 
         this.subscribeOnAlive();
@@ -315,13 +230,13 @@ class RtspCamera extends React.Component {
         this.videoInterval = setInterval(() => this.propertiesUpdate(), 14000);
     }
 
-    async onRxDataChanged(/* prevRxData */) {
+    onRxDataChanged = async (/* prevRxData */) => {
         await this.subscribeOnAlive();
         await this.propertiesUpdate();
-    }
+    };
 
     componentWillUnmount() {
-        super.componentWillUnmount();
+        this.props.onUnmount();
         this.videoInterval && clearInterval(this.videoInterval);
         this.videoInterval = null;
 
@@ -339,66 +254,23 @@ class RtspCamera extends React.Component {
         }
     }
 
-    renderDialog() {
-        return this.state.full ? <Dialog
-            fullWidth
-            maxWidth="lg"
-            open={!0}
-            onClose={() => this.setState({ full: false })}
-        >
-            <DialogTitle>{this.state.rxData.widgetTitle}</DialogTitle>
-            <DialogContent>
-                <div className={this.props.classes.imageContainer}>
-                    <canvas
-                        ref={this.fullVideoRef}
-                        className={this.props.classes.fullCamera}
-                    ></canvas>
-                </div>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    onClick={e => {
-                        e.stopPropagation();
-                        e.preventDefault();
-                        this.setState({ full: false });
-                    }}
-                    startIcon={<Close />}
-                    color="primary"
-                    variant="contained"
-                >
-                    {Generic.t('Close')}
-                </Button>
-            </DialogActions>
-        </Dialog> : null;
-    }
-
     render() {
         const content = <div
             className={this.props.classes.imageContainer}
-            onClick={() => this.setState({ full: true })}
         >
             {this.state.loading && this.state.alive && <CircularProgress className={this.props.classes.progress} />}
             {!this.state.alive ? <div
                 style={{ position: 'absolute', top: 0, left: 0 }}
             >
-                {Generic.t('Camera instance %s inactive', (this.state.rxData.camera || '').split('/')[0])}
+                {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
             </div> : null}
             <canvas
                 ref={this.videoRef}
                 className={this.props.classes.camera}
             ></canvas>
-            {this.renderDialog()}
         </div>;
 
-        if (this.state.rxData.noCard || props.widget.usedInWidget) {
-            return content;
-        }
-
-        return this.wrapContent(content, null, {
-            boxSizing: 'border-box',
-            paddingBottom: 10,
-            height: '100%',
-        });
+        return content;
     }
 }
 
