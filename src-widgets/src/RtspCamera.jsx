@@ -230,6 +230,7 @@ class RtspCamera extends React.Component {
         this.videoInterval = setInterval(() => this.propertiesUpdate(), 14000);
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     onRxDataChanged = async (/* prevRxData */) => {
         await this.subscribeOnAlive();
         await this.propertiesUpdate();

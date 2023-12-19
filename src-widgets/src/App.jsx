@@ -70,7 +70,7 @@ class App extends WidgetDemoApp {
                     server: this.state.values.server,
                     user: this.state.values.user,
                     password: this.state.values.password,
-                    camera: 'cam1',
+                    camera: '0/cam1',
                     // dialog: true,
                 }}
                 fake

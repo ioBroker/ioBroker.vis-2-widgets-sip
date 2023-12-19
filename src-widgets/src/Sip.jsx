@@ -2,20 +2,29 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
 import {
-    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
+    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress, Slider,
 } from '@mui/material';
-import { Call, CallEnd } from '@mui/icons-material';
+import { Call, CallEnd, VolumeUp } from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
 import Generic from './Generic';
 import SnapshotCamera from './SnapshotCamera';
 import RtspCamera from './RtspCamera';
+import ring from './ring.mp3';
 
 const styles = () => ({
     content: {
         width: '100%',
         display: 'grid',
-        gridTemplateRows: 'auto auto min-content min-content',
+        gridTemplateRows: 'auto min-content min-content',
         height: '100%',
+    },
+    greenButton: {
+        backgroundColor: 'green',
+        color: 'white',
+    },
+    redButton: {
+        backgroundColor: 'red',
+        color: 'white',
     },
 });
 
@@ -50,7 +59,7 @@ const CameraField = props => {
                         enabled: iCamera.enabled !== false,
                         value: `${instanceId}/${iCamera.name}`,
                         label: `cameras.${instanceId}/${iCamera.name}`,
-                        subLabel: `${iCamera.desc}/${iCamera.ip}`,
+                        subLabel: iCamera.desc ? `${iCamera.desc}/${iCamera.ip || iCamera.url || ''}` : (iCamera.ip || iCamera.url || ''),
                     });
                 });
             });
@@ -67,6 +76,9 @@ const CameraField = props => {
             setCamera(e.target.value);
         }}
     >
+        <MenuItem value="">
+            {Generic.t('none')}
+        </MenuItem>
         {cameras.map(iCamera => <MenuItem
             key={iCamera.value}
             value={iCamera.value}
@@ -97,6 +109,8 @@ class Sip extends Generic {
 
     audio = document.createElement('audio');
 
+    ringAudio = new Audio(ring);
+
     camera = null;
 
     constructor(props) {
@@ -104,8 +118,18 @@ class Sip extends Generic {
 
         this.state.peak = 0;
         this.state.status = 'idle';
-        this.connectionStatus = 'disconnected';
+        this.state.connectionStatus = 'disconnected';
+        this.state.cameraType = null;
+        this.state.volume = 1;
+        this.audio.volume = 1;
+        this.ringAudio.loop = true;
+        this.ringAudio.volume = 1;
     }
+
+    setVolume = volume => {
+        this.audio.volume = volume;
+        this.setState({ volume });
+    };
 
     static getWidgetInfo() {
         return {
@@ -217,12 +241,12 @@ class Sip extends Generic {
     }
 
     answer = session => {
+        this.ringAudio.pause();
         session.answer();
         this.setState({ status: 'active' });
         session.connection.onaddstream = e => {
             this.audio.srcObject = e.stream;
             this.audio.play();
-            window.audio = this.audio;
 
             const audioContext = new AudioContext();
             const source = audioContext.createMediaStreamSource(e.stream);
@@ -251,6 +275,22 @@ class Sip extends Generic {
     };
 
     async propertiesUpdate() {
+        const cameraData = this.state.rxData.camera?.split('/');
+        let camera = null;
+        if (cameraData && cameraData.length === 2) {
+            const cameraInstance = cameraData[0];
+            const cameraName = cameraData[1];
+            const instanceObject = await this.props.context.socket.getObject(`system.adapter.cameras.${cameraInstance}`);
+            if (instanceObject && instanceObject.native && instanceObject.native.cameras) {
+                camera = instanceObject.native.cameras.find(iCamera => iCamera.name === cameraName);
+            }
+        }
+        if (camera) {
+            this.setState({ cameraType: camera.type });
+        } else {
+            this.setState({ cameraType: null });
+        }
+
         if (this.sipSocket) {
             this.setState({ status: 'idle', connectionStatus: 'disconnected' });
             this.sipUA.removeAllListeners();
@@ -266,8 +306,12 @@ class Sip extends Generic {
         });
 
         this.sipUA.on('newRTCSession', data => {
-            window.data = data;
             this.setState({ status: 'ringing', session: data.session });
+            try {
+                this.ringAudio.play();
+            } catch (e) {
+                console.error(e);
+            }
             console.log(data.session.connection);
         });
 
@@ -297,32 +341,43 @@ class Sip extends Generic {
     disconnect = () => {
         this.state.session.terminate();
         this.setState({ status: 'idle' });
+        this.ringAudio.pause();
     };
 
     renderCamera() {
-        return <SnapshotCamera
-            {...this.props}
-            rxData={this.state.rxData}
-            onMount={camera => this.camera = camera}
-            onUnmount={() => this.camera = null}
-        />;
+        if (this.state.cameraType === 'rtsp') {
+            return <RtspCamera
+                {...this.props}
+                rxData={this.state.rxData}
+                onMount={camera => this.camera = camera}
+                onUnmount={() => this.camera = null}
+            />;
+        }
+        if (this.state.cameraType === 'url') {
+            return <SnapshotCamera
+                {...this.props}
+                rxData={this.state.rxData}
+                onMount={camera => this.camera = camera}
+                onUnmount={() => this.camera = null}
+            />;
+        }
+        return undefined;
     }
 
     renderContent() {
         return <div
             className={this.props.classes.content}
         >
-            <div>
-                {this.renderCamera()}
-            </div>
             <div
                 style={{
-                    background: this.state.peak ? `radial-gradient(rgba(0, 0, ${(this.state.peak / 40) * 255}, 0.4), rgba(0,0,0,0))` : undefined,
+                    background: this.state.peak ? `radial-gradient(rgba(0, 0, ${((this.state.peak - 20) / 20) * 255}, 0.4), rgba(0,0,0,0))` : undefined,
                     transition: 'background-image 0.2s ease-in-out',
-                    borderRadius: '50%',
+                    borderRadius: 16,
                     height: '100%',
+                    overflow: 'hidden',
                 }}
             >
+                {this.state.status === 'active' && this.renderCamera()}
             </div>
             <div style={{
                 justifySelf: 'center',
@@ -331,43 +386,47 @@ class Sip extends Generic {
                 {this.state.status === 'ringing' && <>
                     <Button
                         variant="contained"
-                        style={{
-                            backgroundColor: 'green',
-                            color: 'white',
-                        }}
+                        className={this.props.classes.greenButton}
                         onClick={() => this.answer(this.state.session)}
                         startIcon={<Call />}
                     >
-                Answer
+                        {Generic.t('Answer')}
                     </Button>
                     <Button
                         variant="contained"
-                        style={{
-                            backgroundColor: 'red',
-                            color: 'white',
-                        }}
+                        className={this.props.classes.redButton}
                         color="secondary"
                         onClick={() => this.disconnect()}
                         startIcon={<CallEnd />}
                     >
-                Reject
+                        {Generic.t('Reject')}
                     </Button>
                 </>}
                 {this.state.status === 'active' && <Button
                     variant="contained"
-                    style={{
-                        backgroundColor: 'red',
-                        color: 'white',
-                    }}
+                    className={this.props.classes.redButton}
                     color="secondary"
                     onClick={() => this.disconnect()}
                     startIcon={<CallEnd />}
                 >
-                Hangup
+                    {Generic.t('Hangup')}
                 </Button>}
             </div>
-            <div>
-                <Chip label={this.state.connectionStatus} style={colors[this.state.connectionStatus]} />
+            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+                <Chip
+                    label={Generic.t(this.state.connectionStatus)}
+                    style={colors[this.state.connectionStatus]}
+                />
+                <Slider
+                    value={this.state.volume}
+                    onChange={(_, value) => this.setVolume(value)}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                    valueLabelFormat={value => `${Math.round(value * 100)}%`}
+                    valueLabelDisplay="auto"
+                />
+                <VolumeUp />
                 {this.state.peak}
             </div>
         </div>;

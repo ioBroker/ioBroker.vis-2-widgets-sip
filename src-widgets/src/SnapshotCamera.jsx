@@ -21,9 +21,7 @@ const styles = () => ({
 class SnapshotCamera extends React.Component {
     constructor(props) {
         super(props);
-        this.videoInterval = null;
         this.videoRef = React.createRef();
-        this.currentCam = null;
         this.state = {};
         this.state.alive = false;
         this.state.error = false;
@@ -111,6 +109,7 @@ class SnapshotCamera extends React.Component {
         this.subscribeOnAlive();
     }
 
+    // eslint-disable-next-line react/no-unused-class-component-methods
     onRxDataChanged = async (/* prevRxData */) => {
         await this.subscribeOnAlive();
     };
@@ -135,7 +134,7 @@ class SnapshotCamera extends React.Component {
                 `noCache=${false}`,
                 this.props.rxData.rotate ? `angle=${this.props.rxData.rotate}` : '',
             ];
-            return url + params.filter(p => p).join('');
+            return url + params.filter(p => p).join('&');
         }
 
         return '';
