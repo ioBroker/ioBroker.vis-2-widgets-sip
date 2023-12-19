@@ -26,6 +26,19 @@ const styles = () => ({
         backgroundColor: 'red',
         color: 'white',
     },
+    dialog: {
+        height: '80vh',
+    },
+    camera: {
+        transition: 'background-image 0.2s ease-in-out',
+        borderRadius: 16,
+        height: '100%',
+        overflow: 'hidden',
+    },
+    buttons: {
+        justifySelf: 'center',
+    },
+    status: { display: 'flex', gap: 16, alignItems: 'center' },
 });
 
 const colors = {
@@ -53,7 +66,6 @@ const CameraField = props => {
             const instances = await props.context.socket.getAdapterInstances('cameras');
             instances.forEach(instance => {
                 const instanceId = instance._id.split('.').pop();
-                console.log(instance.native.cameras);
                 instance.native.cameras.forEach(iCamera => {
                     _cameras.push({
                         enabled: iCamera.enabled !== false,
@@ -307,12 +319,15 @@ class Sip extends Generic {
 
         this.sipUA.on('newRTCSession', data => {
             this.setState({ status: 'ringing', session: data.session });
+            data.session.on('failed', () => {
+                this.ringAudio.pause();
+                this.setState({ peak: 0, status: 'idle' });
+            });
             try {
                 this.ringAudio.play();
             } catch (e) {
                 console.error(e);
             }
-            console.log(data.session.connection);
         });
 
         this.sipUA.on('connecting', () => this.setState({ connectionStatus: 'connecting' }));
@@ -369,20 +384,15 @@ class Sip extends Generic {
             className={this.props.classes.content}
         >
             <div
+                className={this.props.classes.camera}
                 style={{
                     background: this.state.peak ? `radial-gradient(rgba(0, 0, ${((this.state.peak - 20) / 20) * 255}, 0.4), rgba(0,0,0,0))` : undefined,
-                    transition: 'background-image 0.2s ease-in-out',
-                    borderRadius: 16,
-                    height: '100%',
-                    overflow: 'hidden',
                 }}
             >
-                {this.state.status === 'active' && this.renderCamera()}
+                {(this.state.status === 'active' || this.state.status === 'ringing')
+                 && this.renderCamera()}
             </div>
-            <div style={{
-                justifySelf: 'center',
-            }}
-            >
+            <div className={this.props.classes.buttons}>
                 {this.state.status === 'ringing' && <>
                     <Button
                         variant="contained"
@@ -412,7 +422,7 @@ class Sip extends Generic {
                     {Generic.t('Hangup')}
                 </Button>}
             </div>
-            <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+            <div className={this.props.classes.status}>
                 <Chip
                     label={Generic.t(this.state.connectionStatus)}
                     style={colors[this.state.connectionStatus]}
@@ -437,7 +447,7 @@ class Sip extends Generic {
             open={this.state.rxData.dialog && this.state.status !== 'idle'}
             fullWidth
         >
-            <DialogContent style={{ height: '80vh' }}>
+            <DialogContent className={this.props.classes.dialog}>
                 {this.renderContent()}
             </DialogContent>
         </Dialog>;
@@ -447,7 +457,10 @@ class Sip extends Generic {
         super.renderWidgetBody(props);
 
         const content = <>
-            {!this.state.rxData.dialog && this.renderContent()}
+            {this.state.rxData.dialog ? <Chip
+                label={Generic.t(this.state.connectionStatus)}
+                style={colors[this.state.connectionStatus]}
+            /> : this.renderContent()}
             {this.renderDialog()}
         </>;
 
