@@ -30,5 +30,9 @@
     "connected": "connected",
     "disconnected": "disconnected",
     "connecting": "connecting",
-    "invisible": "Invisible"
+    "invisible": "Invisible",
+    "calling-oid-label": "Calling OID",
+    "ringing-oid": "Ringing OID",
+    "connected-oid": "Connected OID",
+    "calling-number-oid": "Disconnected OID"
 }

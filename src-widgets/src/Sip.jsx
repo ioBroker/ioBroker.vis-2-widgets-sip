@@ -261,6 +261,31 @@ class Sip extends Generic {
                         },
                     ],
                 },
+                {
+                    name: 'states',
+                    fields: [
+                        {
+                            name: 'calling-oid',
+                            label: 'calling-oid-label',
+                            type: 'id',
+                        },
+                        {
+                            name: 'ringing-oid',
+                            label: 'ringing-oid',
+                            type: 'id',
+                        },
+                        {
+                            name: 'connected-oid',
+                            label: 'connected-oid',
+                            type: 'id',
+                        },
+                        {
+                            name: 'calling-number-oid',
+                            label: 'calling-number-oid',
+                            type: 'id',
+                        },
+                    ],
+                },
             ],
             visDefaultStyle: {
                 width: '100%',
@@ -280,6 +305,8 @@ class Sip extends Generic {
         this.ringAudio.pause();
         session.answer();
         this.setState({ status: 'active' });
+        this.setValue('calling', true);
+        this.setValue('ringing', false);
         session.connection.onaddstream = async e => {
             this.audio.srcObject = e.stream;
             this.audio.play();
@@ -314,6 +341,9 @@ class Sip extends Generic {
             session.on('ended', () => {
                 clearInterval(interval);
                 this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
+                this.setValue('calling', false);
+                this.setValue('ringing', false);
+                this.setValue('calling-number', '');
             });
         };
     };
@@ -337,6 +367,10 @@ class Sip extends Generic {
 
         if (this.sipSocket) {
             this.setState({ status: 'idle', connectionStatus: 'disconnected' });
+            this.setValue('calling', false);
+            this.setValue('ringing', false);
+            this.setValue('connected', false);
+            this.setValue('calling-number', '');
             this.sipUA.removeAllListeners();
             this.sipUA.stop();
             this.sipSocket.disconnect();
@@ -351,9 +385,14 @@ class Sip extends Generic {
 
         this.sipUA.on('newRTCSession', data => {
             this.setState({ status: 'ringing', session: data.session });
+            this.setValue('ringing', true);
+            this.setValue('calling-number', data.request.from.uri.user);
             data.session.on('failed', () => {
                 this.ringAudio.pause();
                 this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
+                this.setValue('calling', false);
+                this.setValue('ringing', false);
+                this.setValue('calling-number', '');
             });
             try {
                 this.ringAudio.play();
@@ -362,9 +401,18 @@ class Sip extends Generic {
             }
         });
 
-        this.sipUA.on('connecting', () => this.setState({ connectionStatus: 'connecting' }));
-        this.sipUA.on('connected', () => this.setState({ connectionStatus: 'connected' }));
-        this.sipUA.on('disconnected', () => this.setState({ connectionStatus: 'disconnected' }));
+        this.sipUA.on('connecting', () => {
+            this.setState({ connectionStatus: 'connecting' });
+            this.setValue('connected', false);
+        });
+        this.sipUA.on('connected', () => {
+            this.setState({ connectionStatus: 'connected' });
+            this.setValue('connected', true);
+        });
+        this.sipUA.on('disconnected', () => {
+            this.setState({ connectionStatus: 'disconnected' });
+            this.setValue('connected', false);
+        });
 
         this.sipUA.start();
     }
@@ -385,9 +433,18 @@ class Sip extends Generic {
         }
     }
 
+    setValue(name, value) {
+        if (this.state.rxData[`${name}-oid`]) {
+            this.props.context.socket.setState(this.state.rxData[`${name}-oid`], value);
+        }
+    }
+
     disconnect = () => {
         this.state.session.terminate();
         this.setState({ status: 'idle' });
+        this.setValue('calling', false);
+        this.setValue('ringing', false);
+        this.setValue('calling-number', '');
         this.ringAudio.pause();
     };
 
