@@ -29,5 +29,6 @@
     "Hangup": "Hangup",
     "connected": "connected",
     "disconnected": "disconnected",
-    "connecting": "connecting"
+    "connecting": "connecting",
+    "invisible": "Invisible"
 }

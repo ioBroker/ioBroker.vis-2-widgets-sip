@@ -2,9 +2,12 @@ import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
 import {
-    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress, Slider,
+    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
+    Slider,
 } from '@mui/material';
-import { Call, CallEnd, VolumeUp } from '@mui/icons-material';
+import {
+    Call, CallEnd, Mic, VolumeUp,
+} from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
 import Generic from './Generic';
 import SnapshotCamera from './SnapshotCamera';
@@ -17,6 +20,7 @@ const styles = () => ({
         display: 'grid',
         gridTemplateRows: 'auto min-content min-content',
         height: '100%',
+        overflow: 'hidden',
     },
     greenButton: {
         backgroundColor: 'green',
@@ -29,11 +33,24 @@ const styles = () => ({
     dialog: {
         height: '80vh',
     },
+    topBlock: {
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: 'auto min-content min-content',
+        gridTemplateRows: 'auto min-content',
+        overflow: 'hidden',
+    },
     camera: {
         transition: 'background-image 0.2s ease-in-out',
         borderRadius: 16,
         height: '100%',
         overflow: 'hidden',
+    },
+    slider: {
+        display: 'grid',
+        gridTemplateRows: 'auto min-content',
+        overflow: 'hidden',
+        gap: 16,
     },
     buttons: {
         justifySelf: 'center',
@@ -128,7 +145,8 @@ class Sip extends Generic {
     constructor(props) {
         super(props);
 
-        this.state.peak = 0;
+        this.state.outputPeak = 0;
+        this.state.inputPeak = 0;
         this.state.status = 'idle';
         this.state.connectionStatus = 'disconnected';
         this.state.cameraType = null;
@@ -194,6 +212,12 @@ class Sip extends Generic {
                             label: 'dialog',
                             type: 'checkbox',
                         },
+                        {
+                            name: 'invisible',
+                            label: 'invisible',
+                            type: 'checkbox',
+                            hidden: '!data.dialog',
+                        },
                     ],
                 },
                 {
@@ -256,32 +280,40 @@ class Sip extends Generic {
         this.ringAudio.pause();
         session.answer();
         this.setState({ status: 'active' });
-        session.connection.onaddstream = e => {
+        session.connection.onaddstream = async e => {
             this.audio.srcObject = e.stream;
             this.audio.play();
 
-            const audioContext = new AudioContext();
-            const source = audioContext.createMediaStreamSource(e.stream);
-            const analyser = audioContext.createAnalyser();
+            const outputAudioContext = new AudioContext();
+            const output = outputAudioContext.createMediaStreamSource(e.stream);
+            const outputAnalyser = outputAudioContext.createAnalyser();
+            output.connect(outputAnalyser);
+            outputAnalyser.connect(outputAudioContext.destination);
+            outputAnalyser.fftSize = 64;
+            const outputFrequencyData = new Uint8Array(outputAnalyser.frequencyBinCount);
+            outputAnalyser.getByteFrequencyData(outputFrequencyData);
 
-            source.connect(analyser);
-            analyser.connect(audioContext.destination);
-
-            analyser.fftSize = 64;
-
-            const frequencyData = new Uint8Array(analyser.frequencyBinCount);
-            analyser.getByteFrequencyData(frequencyData);
+            const inputAudioContext = new AudioContext();
+            const input = inputAudioContext.createMediaStreamSource(await navigator.mediaDevices.getUserMedia({ audio: true, video: false }));
+            const inputAnalyser = inputAudioContext.createAnalyser();
+            input.connect(inputAnalyser);
+            // inputAnalyser.connect(inputAudioContext.destination);
+            inputAnalyser.fftSize = 64;
+            const inputFrequencyData = new Uint8Array(inputAnalyser.frequencyBinCount);
+            inputAnalyser.getByteFrequencyData(inputFrequencyData);
 
             const update = () => {
-                analyser.getByteFrequencyData(frequencyData);
-                const peakFrequency = frequencyData.reduce((a, b) => a + b, 0) / frequencyData.length;
-                this.setState({ peak: peakFrequency });
+                outputAnalyser.getByteFrequencyData(outputFrequencyData);
+                inputAnalyser.getByteFrequencyData(inputFrequencyData);
+                const outputPeakFrequency = outputFrequencyData.reduce((a, b) => a + b, 0) / outputFrequencyData.length;
+                const inputPeakFrequency = inputFrequencyData.reduce((a, b) => a + b, 0) / inputFrequencyData.length;
+                this.setState({ outputPeak: outputPeakFrequency, inputPeak: inputPeakFrequency });
             };
 
             const interval = setInterval(update, 100);
             session.on('ended', () => {
                 clearInterval(interval);
-                this.setState({ peak: 0, status: 'idle' });
+                this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
             });
         };
     };
@@ -321,7 +353,7 @@ class Sip extends Generic {
             this.setState({ status: 'ringing', session: data.session });
             data.session.on('failed', () => {
                 this.ringAudio.pause();
-                this.setState({ peak: 0, status: 'idle' });
+                this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
             });
             try {
                 this.ringAudio.play();
@@ -379,55 +411,72 @@ class Sip extends Generic {
         return undefined;
     }
 
+    // eslint-disable-next-line class-methods-use-this
+    renderSlider(value, icon) {
+        return <div className={this.props.classes.slider}>
+            <Slider
+                orientation="vertical"
+                value={value}
+                disabled
+                min={20}
+                max={80}
+            />
+            {icon}
+        </div>;
+    }
+
     renderContent() {
         return <div
             className={this.props.classes.content}
         >
             <div
-                className={this.props.classes.camera}
-                style={{
-                    background: this.state.peak ? `radial-gradient(rgba(0, 0, ${((this.state.peak - 20) / 20) * 255}, 0.4), rgba(0,0,0,0))` : undefined,
-                }}
+                className={this.props.classes.topBlock}
             >
                 {(this.state.status === 'active' || this.state.status === 'ringing')
-                 && this.renderCamera()}
-            </div>
-            <div className={this.props.classes.buttons}>
-                {this.state.status === 'ringing' && <>
-                    <Button
-                        variant="contained"
-                        className={this.props.classes.greenButton}
-                        onClick={() => this.answer(this.state.session)}
-                        startIcon={<Call />}
-                    >
-                        {Generic.t('Answer')}
-                    </Button>
-                    <Button
+                 && <>
+                     <div className={this.props.classes.camera}>
+                         {this.renderCamera()}
+                     </div>
+                     {this.renderSlider(this.state.inputPeak, <Mic />)}
+                     {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
+                 </>}
+                <div className={this.props.classes.buttons}>
+                    {this.state.status === 'ringing' && <>
+                        <Button
+                            variant="contained"
+                            className={this.props.classes.greenButton}
+                            onClick={() => this.answer(this.state.session)}
+                            startIcon={<Call />}
+                        >
+                            {Generic.t('Answer')}
+                        </Button>
+                        <Button
+                            variant="contained"
+                            className={this.props.classes.redButton}
+                            color="secondary"
+                            onClick={() => this.disconnect()}
+                            startIcon={<CallEnd />}
+                        >
+                            {Generic.t('Reject')}
+                        </Button>
+                    </>}
+                    {this.state.status === 'active' && <Button
                         variant="contained"
                         className={this.props.classes.redButton}
                         color="secondary"
                         onClick={() => this.disconnect()}
                         startIcon={<CallEnd />}
                     >
-                        {Generic.t('Reject')}
-                    </Button>
-                </>}
-                {this.state.status === 'active' && <Button
-                    variant="contained"
-                    className={this.props.classes.redButton}
-                    color="secondary"
-                    onClick={() => this.disconnect()}
-                    startIcon={<CallEnd />}
-                >
-                    {Generic.t('Hangup')}
-                </Button>}
+                        {Generic.t('Hangup')}
+                    </Button>}
+                </div>
             </div>
             <div className={this.props.classes.status}>
                 <Chip
                     label={Generic.t(this.state.connectionStatus)}
                     style={colors[this.state.connectionStatus]}
                 />
-                <Slider
+                {/* <Slider
                     value={this.state.volume}
                     onChange={(_, value) => this.setVolume(value)}
                     min={0}
@@ -436,8 +485,7 @@ class Sip extends Generic {
                     valueLabelFormat={value => `${Math.round(value * 100)}%`}
                     valueLabelDisplay="auto"
                 />
-                <VolumeUp />
-                {this.state.peak}
+                <VolumeUp /> */}
             </div>
         </div>;
     }
@@ -463,6 +511,10 @@ class Sip extends Generic {
             /> : this.renderContent()}
             {this.renderDialog()}
         </>;
+
+        if (this.state.rxData.invisible) {
+            return undefined;
+        }
 
         return this.wrapContent(
             content,
