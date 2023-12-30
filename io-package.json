@@ -1,0 +1,56 @@
+{
+  "common": {
+    "name": "vis-2-widgets-sip",
+    "version": "0.0.1",
+    "news": {
+
+    },
+    "title": "Vis 2 Widgets Material",
+    "titleLang": {
+      "en": "Vis 2 Widgets Material"
+    },
+    "desc": {
+      "en": "Vis 2 Widgets Material"
+    },
+    "authors": [
+      "bluefox <dogafox@gmail.com>"
+    ],
+    "keywords": [
+      "vis-2-widgets-sip"
+    ],
+    "license": "MIT",
+    "platform": "Javascript/Node.js",
+    "icon": "vis-2-widgets-sip.png",
+    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.vis-2-widgets-sip/master/admin/vis-2-widgets-sip.png",
+    "enabled": true,
+    "readme": "https://github.com/ioBroker/ioBroker.vis-2-widgets-sip/blob/master/README.md",
+    "loglevel": "info",
+    "mode": "once",
+    "singleton": true,
+    "adminUI": {
+      "config": "none"
+    },
+    "nogit": true,
+    "onlyWWW": true,
+    "type": "visualization-widgets",
+    "connectionType": "cloud",
+    "dataSource": "poll",
+    "visWidgets": {
+      "vis2Sip": {
+        "i18n": "component",
+        "name": "vis2Sip",
+        "url": "vis-2-widgets-sip/customWidgets.js",
+        "components": [
+          "Sip"
+        ]
+      }
+    },
+    "restartAdapters": [
+      "vis-2"
+    ],
+    "tier": 3
+  },
+  "native": {},
+  "objects": [],
+  "instanceObjects": []
+}
