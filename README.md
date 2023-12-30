@@ -6,10 +6,14 @@
 
 [![NPM](https://nodei.co/npm/iobroker.vis-2-widgets-material.png?downloads=true)](https://nodei.co/npm/iobroker.vis-2-widgets-material/)
 
+This widget allows accepting calls from other SIP clients. It is based on SIP.js library.
+
+It requires running asterisk server or other SIP server.
+
+
 ## Widgets
 Server: wss://sip.iobroker.net:8089/ws
 User: sip:1060@sip.iobroker.net
-
 
 <!--
     Placeholder for the next version (at the beginning of the line):

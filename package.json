@@ -1,7 +1,7 @@
 {
   "name": "iobroker.vis-2-widgets-sip",
-  "version": "1.3.17",
-  "description": "ioBroker vis2 material widgets",
+  "version": "0.0.1",
+  "description": "ioBroker vis2 SIP widgets",
   "author": "bluefox <dogafox@gmail.com>",
   "contributors": [
     "bluefox <dogafox@gmail.com>"
@@ -16,7 +16,7 @@
     "ioBroker",
     "weather",
     "home automation",
-    "vis-2-widgets-sip"
+    "SIP"
   ],
   "devDependencies": {
     "@alcalzone/release-script": "^3.7.0",
