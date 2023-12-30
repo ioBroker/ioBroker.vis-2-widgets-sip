@@ -58,6 +58,7 @@ const styles = () => ({
     buttons: {
         justifySelf: 'center',
         gap: 16,
+        display: 'flex',
     },
     status: { display: 'flex', gap: 16, alignItems: 'center' },
 });
@@ -199,12 +200,14 @@ class Sip extends Generic {
                             label: 'server',
                             tooltip: 'server_tooltip',
                             type: 'text',
+                            default: 'wss://sip.iobroker.net:8089/ws',
                         },
                         {
                             name: 'user',
                             label: 'user',
                             tooltip: 'user_tooltip',
                             type: 'text',
+                            default: 'sip:1060@sip.iobroker.net',
                         },
                         {
                             name: 'password',
@@ -493,13 +496,14 @@ class Sip extends Generic {
             <div
                 className={this.props.classes.topBlock}
             >
+                {this.state.status === 'active' || this.state.status === 'ringing' ?
+                    <div className={this.props.classes.camera}>
+                        {this.renderCamera()}
+                    </div> : null}
                 {this.state.status === 'active' && <>
-                     <div className={this.props.classes.camera}>
-                         {this.renderCamera()}
-                     </div>
-                     {this.renderSlider(this.state.inputPeak, <Mic />)}
-                     {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
-                 </>}
+                    {this.renderSlider(this.state.inputPeak, <Mic />)}
+                    {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
+                </>}
                 <div className={this.props.classes.buttons}>
                     {this.state.status === 'ringing' && <>
                         <Button
