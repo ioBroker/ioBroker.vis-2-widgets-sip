@@ -34,5 +34,5 @@
     "calling-oid-label": "Calling OID",
     "ringing-oid": "Ringing OID",
     "connected-oid": "Connected OID",
-    "calling-number-oid": "Disconnected OID"
+    "calling-number-oid": "Calling number OID"
 }

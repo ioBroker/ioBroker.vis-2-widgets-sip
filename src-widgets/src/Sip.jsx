@@ -51,9 +51,13 @@ const styles = () => ({
         gridTemplateRows: 'auto min-content',
         overflow: 'hidden',
         gap: 16,
+        '& .MuiSlider-thumb': {
+            display: 'none',
+        },
     },
     buttons: {
         justifySelf: 'center',
+        gap: 16,
     },
     status: { display: 'flex', gap: 16, alignItems: 'center' },
 });
@@ -489,8 +493,7 @@ class Sip extends Generic {
             <div
                 className={this.props.classes.topBlock}
             >
-                {(this.state.status === 'active' || this.state.status === 'ringing')
-                 && <>
+                {this.state.status === 'active' && <>
                      <div className={this.props.classes.camera}>
                          {this.renderCamera()}
                      </div>
