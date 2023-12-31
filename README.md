@@ -20,7 +20,7 @@ User: sip:1060@sip.iobroker.net
     ### **WORK IN PROGRESS**
 -->
 ## Changelog
-### 0.0.2 (2023-12-30)
+### **WORK IN PROGRESS**
 * (bluefox) initial commit
 
 ## License
