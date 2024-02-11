@@ -20,6 +20,9 @@ User: sip:1060@sip.iobroker.net
     ### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) corrected the layout of buttons
+
 ### 0.0.3 (2023-12-31)
 * (bluefox) initial commit
 

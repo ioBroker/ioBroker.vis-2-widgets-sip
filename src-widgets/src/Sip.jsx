@@ -3,10 +3,10 @@ import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
 import {
     Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
-    Slider,
+    Slider, DialogTitle, DialogContentText, DialogActions,
 } from '@mui/material';
 import {
-    Call, CallEnd, Mic, VolumeUp,
+    Call, CallEnd, Check, Mic, VolumeUp,
 } from '@mui/icons-material';
 import { WebSocketInterface, UA } from 'jssip';
 import Generic from './Generic';
@@ -59,6 +59,7 @@ const styles = () => ({
         justifySelf: 'center',
         gap: 16,
         display: 'flex',
+        alignItems: 'center',
     },
     status: { display: 'flex', gap: 16, alignItems: 'center' },
 });
@@ -156,6 +157,7 @@ class Sip extends Generic {
         this.state.connectionStatus = 'disconnected';
         this.state.cameraType = null;
         this.state.volume = 1;
+        this.state.showError = '';
         this.audio.volume = 1;
         this.ringAudio.loop = true;
         this.ringAudio.volume = 1;
@@ -194,6 +196,7 @@ class Sip extends Generic {
                 },
                 {
                     name: 'sip',
+                    label: 'sip_server',
                     fields: [
                         {
                             name: 'server',
@@ -229,6 +232,7 @@ class Sip extends Generic {
                 },
                 {
                     name: 'camera',
+                    label: 'camera',
                     fields: [
                         {
                             label: 'Camera',
@@ -270,6 +274,7 @@ class Sip extends Generic {
                 },
                 {
                     name: 'states',
+                    label: 'states',
                     fields: [
                         {
                             name: 'calling-oid',
@@ -299,7 +304,7 @@ class Sip extends Generic {
                 height: 120,
                 position: 'relative',
             },
-            visPrev: 'widgets/vis-2-widgets-material/img/prev_actual.png',
+            visPrev: 'widgets/vis-2-widgets-sip/img/prev_sip.png',
         };
     }
 
@@ -314,9 +319,17 @@ class Sip extends Generic {
         this.setState({ status: 'active' });
         this.setValue('calling', true);
         this.setValue('ringing', false);
+
         session.connection.onaddstream = async e => {
             this.audio.srcObject = e.stream;
-            this.audio.play();
+            try {
+                this.audio.play();
+            } catch (err) {
+                console.warn(`Cannot play audio: ${err}`);
+                if (!this.state.rxData['ringing-oid'] && !this.state.rxData['calling-number-oid']) {
+                    this.setState({ showError: 'Cannot play audio. You should use Object ID to trigger the audio somewhere else' });
+                }
+            }
 
             const outputAudioContext = new AudioContext();
             const output = outputAudioContext.createMediaStreamSource(e.stream);
@@ -489,14 +502,39 @@ class Sip extends Generic {
         </div>;
     }
 
-    renderContent() {
-        return <div
-            className={this.props.classes.content}
+    renderShowErrorDialog() {
+        if (!this.state.showError) {
+            return null;
+        }
+
+        return <Dialog
+            open={!0}
+            onClose={() => this.setState({ showError: '' })}
         >
-            <div
-                className={this.props.classes.topBlock}
-            >
-                {this.state.status === 'active' || this.state.status === 'ringing' ?
+            <DialogTitle>{Generic.t('Error')}</DialogTitle>
+            <DialogContent>
+                <DialogContentText>
+                    {Generic.t(this.state.showError)}
+                </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+                <Button
+                    color="primary"
+                    variant="contained"
+                    default
+                    onClick={() => this.setState({ showError: '' })}
+                    startIcon={<Check />}
+                >
+                    {Generic.t('Ok')}
+                </Button>
+            </DialogActions>
+        </Dialog>;
+    }
+
+    renderContent() {
+        return <div className={this.props.classes.content}>
+            <div className={this.props.classes.topBlock}>
+                {this.state.rxData.camera && (this.state.status === 'active' || this.state.status === 'ringing') ?
                     <div className={this.props.classes.camera}>
                         {this.renderCamera()}
                     </div> : null}
@@ -504,36 +542,36 @@ class Sip extends Generic {
                     {this.renderSlider(this.state.inputPeak, <Mic />)}
                     {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
                 </>}
-                <div className={this.props.classes.buttons}>
-                    {this.state.status === 'ringing' && <>
-                        <Button
-                            variant="contained"
-                            className={this.props.classes.greenButton}
-                            onClick={() => this.answer(this.state.session)}
-                            startIcon={<Call />}
-                        >
-                            {Generic.t('Answer')}
-                        </Button>
-                        <Button
-                            variant="contained"
-                            className={this.props.classes.redButton}
-                            color="secondary"
-                            onClick={() => this.disconnect()}
-                            startIcon={<CallEnd />}
-                        >
-                            {Generic.t('Reject')}
-                        </Button>
-                    </>}
-                    {this.state.status === 'active' && <Button
+            </div>
+            <div className={this.props.classes.buttons}>
+                {this.state.status === 'ringing' && <>
+                    <Button
+                        variant="contained"
+                        className={this.props.classes.greenButton}
+                        onClick={() => this.answer(this.state.session)}
+                        startIcon={<Call />}
+                    >
+                        {Generic.t('Answer')}
+                    </Button>
+                    <Button
                         variant="contained"
                         className={this.props.classes.redButton}
                         color="secondary"
                         onClick={() => this.disconnect()}
                         startIcon={<CallEnd />}
                     >
-                        {Generic.t('Hangup')}
-                    </Button>}
-                </div>
+                        {Generic.t('Reject')}
+                    </Button>
+                </>}
+                {this.state.status === 'active' && <Button
+                    variant="contained"
+                    className={this.props.classes.redButton}
+                    color="secondary"
+                    onClick={() => this.disconnect()}
+                    startIcon={<CallEnd/>}
+                >
+                    {Generic.t('Hangup')}
+                </Button>}
             </div>
             <div className={this.props.classes.status}>
                 <Chip
@@ -555,8 +593,12 @@ class Sip extends Generic {
     }
 
     renderDialog() {
+        if (!this.state.rxData.dialog || this.state.status === 'idle') {
+            return null;
+        }
+
         return <Dialog
-            open={this.state.rxData.dialog && this.state.status !== 'idle'}
+            open={!0}
             fullWidth
         >
             <DialogContent className={this.props.classes.dialog}>
@@ -573,6 +615,7 @@ class Sip extends Generic {
                 label={Generic.t(this.state.connectionStatus)}
                 style={colors[this.state.connectionStatus]}
             /> : this.renderContent()}
+            {this.renderShowErrorDialog()}
             {this.renderDialog()}
         </>;
 

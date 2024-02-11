@@ -17,12 +17,12 @@
         "zh-cn": "初步承诺"
       }
     },
-    "title": "Vis 2 Widgets Material",
+    "title": "SIP Vis-2 Widgets",
     "titleLang": {
-      "en": "Vis 2 Widgets Material"
+      "en": "SIP Vis-2 Widgets"
     },
     "desc": {
-      "en": "Vis 2 Widgets Material"
+      "en": "Widget for SIP communication from browser"
     },
     "authors": [
       "bluefox <dogafox@gmail.com>"
