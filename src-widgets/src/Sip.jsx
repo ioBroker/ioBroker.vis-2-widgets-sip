@@ -568,7 +568,7 @@ class Sip extends Generic {
                     className={this.props.classes.redButton}
                     color="secondary"
                     onClick={() => this.disconnect()}
-                    startIcon={<CallEnd/>}
+                    startIcon={<CallEnd />}
                 >
                     {Generic.t('Hangup')}
                 </Button>}
