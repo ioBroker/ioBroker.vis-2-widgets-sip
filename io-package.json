@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-sip",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "news": {
+      "0.0.5": {
+        "en": "corrected the layout of buttons",
+        "de": "korrigierte das layout der tasten",
+        "ru": "исправить расположение кнопок",
+        "pt": "corrigido o layout dos botões",
+        "nl": "gecorrigeerd de indeling van de knoppen",
+        "fr": "corrigé la disposition des boutons",
+        "it": "corretto il layout dei pulsanti",
+        "es": "corregido el diseño de botones",
+        "pl": "poprawiono układ przycisków",
+        "uk": "виправлено макет гудзиків",
+        "zh-cn": "修改按钮的布局"
+      },
       "0.0.4": {
         "en": "corrected the layout of buttons",
         "de": "korrigierte das layout der tasten",
