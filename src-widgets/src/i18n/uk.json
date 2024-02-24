@@ -38,5 +38,11 @@
   "user": "Користувач",
   "user_tooltip": "Приклад: sip:1060@iobroker.net",
   "videoWidth": "Ширина відео",
-  "without_card": "Без картки"
+  "without_card": "Без картки",
+  "Please use HTTPS for SIP": "Будь ласка, використовуйте HTTPS для SIP",
+  "Authentication Error. Please check your credentials": "Помилка аутентифікації. Перевірте свої облікові дані",
+  "Ok": "OK",
+  "Authentication Error": "Помилка аутентифікації",
+  "Error": "Помилка",
+  "Timeout": "Час очікування підключення"
 }

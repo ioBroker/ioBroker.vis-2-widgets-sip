@@ -38,5 +38,11 @@
   "user": "Do utilizador",
   "user_tooltip": "Exemplo: sip:1060@iobroker.net",
   "videoWidth": "Largura do vídeo",
-  "without_card": "Sem cartão"
+  "without_card": "Sem cartão",
+  "Please use HTTPS for SIP": "Use HTTPS para SIP",
+  "Authentication Error. Please check your credentials": "Erro de autenticação. Por favor, verifique suas credenciais",
+  "Ok": "OK",
+  "Authentication Error": "Erro de autenticação",
+  "Error": "Erro",
+  "Timeout": "Tempo limite de conexão"
 }

@@ -38,5 +38,11 @@
   "sip_server": "SIP Server",
   "camera": "Camera",
   "states": "Object IDs",
-  "cannot_play_audio": "Cannot play audio. You should use Object ID to trigger the audio somewhere else"
+  "cannot_play_audio": "Cannot play audio. You should use Object ID to trigger the audio somewhere else",
+  "Please use HTTPS for SIP": "Please use HTTPS for SIP",
+  "Authentication Error. Please check your credentials": "Authentication Error. Please check your credentials",
+  "Ok": "Ok",
+  "Authentication Error": "Authentication Error",
+  "Error": "Error",
+  "Timeout": "Connection timeout"
 }

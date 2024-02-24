@@ -38,5 +38,11 @@
   "user": "用户",
   "user_tooltip": "示例：sip:1060@iobroker.net",
   "videoWidth": "视频宽度",
-  "without_card": "无卡"
+  "without_card": "无卡",
+  "Please use HTTPS for SIP": "请使用 HTTPS 进行 SIP",
+  "Authentication Error. Please check your credentials": "授权错误。请检查您的凭据",
+  "Ok": "好的",
+  "Authentication Error": "授权错误",
+  "Error": "错误",
+  "Timeout": "连接超时"
 }

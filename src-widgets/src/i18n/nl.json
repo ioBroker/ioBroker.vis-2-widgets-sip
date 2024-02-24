@@ -38,5 +38,11 @@
   "user": "Gebruiker",
   "user_tooltip": "Voorbeeld: sip:1060@iobroker.net",
   "videoWidth": "Videobreedte",
-  "without_card": "Zonder kaart"
+  "without_card": "Zonder kaart",
+  "Please use HTTPS for SIP": "Gebruik HTTPS voor SIP",
+  "Authentication Error. Please check your credentials": "Authenticatiefout. Controleer uw inloggegevens",
+  "Ok": "OK",
+  "Authentication Error": "Authenticatiefout",
+  "Error": "Fout",
+  "Timeout": "Time-out voor verbinding"
 }

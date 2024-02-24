@@ -1,6 +1,8 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
 import { withStyles } from '@mui/styles';
+import { WebSocketInterface, UA } from 'jssip';
+
 import {
     Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
     Slider, DialogTitle, DialogContentText, DialogActions,
@@ -8,7 +10,7 @@ import {
 import {
     Call, CallEnd, Check, Mic, VolumeUp,
 } from '@mui/icons-material';
-import { WebSocketInterface, UA } from 'jssip';
+
 import Generic from './Generic';
 import SnapshotCamera from './SnapshotCamera';
 import RtspCamera from './RtspCamera';
@@ -76,6 +78,10 @@ const colors = {
     disconnected: {
         backgroundColor: 'red',
         color: 'white',
+    },
+    'Authentication Error': {
+        backgroundColor: 'red',
+        color: 'orange',
     },
 };
 
@@ -161,6 +167,8 @@ class Sip extends Generic {
         this.audio.volume = 1;
         this.ringAudio.loop = true;
         this.ringAudio.volume = 1;
+
+        this.sipFirstConnectionDone = false;
     }
 
     setVolume = volume => {
@@ -368,6 +376,104 @@ class Sip extends Generic {
         };
     };
 
+    sipDestroy() {
+        if (this.sipSocket) {
+            this.setState({ status: 'idle', connectionStatus: 'disconnected' });
+            this.setValue('calling', false);
+            this.setValue('ringing', false);
+            this.setValue('connected', false);
+            this.setValue('calling-number', '');
+            this.sipUA.removeAllListeners();
+            this.sipUA.stop();
+            this.sipSocket.disconnect();
+            this.sipSocket = null;
+        }
+    }
+
+    sipCreate() {
+        this.sipDestroy();
+        if (this.state.rxData.password && this.state.rxData.server && this.state.rxData.user) {
+            this.sipFirstConnectionDone = true;
+            this.sipSocket = new WebSocketInterface(this.state.rxData.server);
+
+            let uri = this.state.rxData.user;
+            if (!uri.startsWith('sip:')) {
+                // extract wss://sip.iobroker.net:8089/ws server
+                const parts = this.state.rxData.server.split('/');
+                if (parts.length >= 3) {
+                    uri = `sip:${this.state.rxData.user}@${parts[2].split(':')[0]}`;
+                }
+            }
+
+            this.sipUA = new UA({
+                sockets: [this.sipSocket],
+                uri,
+                password: this.state.rxData.password,
+            });
+
+            this.sipUA.on('newRTCSession', data => {
+                // someone is calling
+                this.setState({ status: 'ringing', session: data.session });
+                this.setValue('ringing', true);
+                this.setValue('calling-number', data.request.from.uri.user);
+
+                data.session.on('failed', () => {
+                    this.ringAudio.pause();
+                    this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
+                    this.setValue('calling', false);
+                    this.setValue('ringing', false);
+                    this.setValue('calling-number', '');
+                });
+
+                // we can play audio only if a user pressed any button (or element) on the page
+                try {
+                    this.ringAudio.play();
+                } catch (e) {
+                    console.error(e);
+                }
+            });
+
+            this.sipUA.on('connecting', () => {
+                this.setState({ connectionStatus: 'connecting' });
+                this.setValue('connected', false);
+            });
+            this.sipUA.on('connected', e => {
+                console.log('connected', e);
+            });
+            this.sipUA.on('disconnected', () => {
+                if (this.state.connectionStatus !== 'disconnected') {
+                    this.setState({ connectionStatus: 'disconnected' });
+                    this.setValue('connected', false);
+                }
+            });
+            this.sipUA.on('newMessage', e => {
+                console.log('newMessage', e);
+            });
+            this.sipUA.on('registered', e => {
+                console.log('registered', e);
+                this.setState({ connectionStatus: 'connected' });
+                this.setValue('connected', true);
+            });
+            this.sipUA.on('unregistered', e => {
+                console.log('unregistered', e);
+                if (this.state.connectionStatus !== 'disconnected') {
+                    this.setState({ connectionStatus: 'disconnected' });
+                    this.setValue('connected', false);
+                }
+            });
+            this.sipUA.on('registrationFailed', e => {
+                console.log('registrationFailed', e);
+                if (e.cause === 'Authentication Error') {
+                    this.setState({ showError: 'Authentication Error. Please check your credentials' });
+                    this.setState({ connectionStatus: 'Authentication Error' });
+                } else {
+                    this.setState({ connectionStatus: e.cause });
+                }
+            });
+            this.sipUA.start();
+        }
+    }
+
     async propertiesUpdate() {
         const cameraData = this.state.rxData.camera?.split('/');
         let camera = null;
@@ -385,56 +491,16 @@ class Sip extends Generic {
             this.setState({ cameraType: null });
         }
 
-        if (this.sipSocket) {
-            this.setState({ status: 'idle', connectionStatus: 'disconnected' });
-            this.setValue('calling', false);
-            this.setValue('ringing', false);
-            this.setValue('connected', false);
-            this.setValue('calling-number', '');
-            this.sipUA.removeAllListeners();
-            this.sipUA.stop();
-            this.sipSocket.disconnect();
+        if (this.currentServerdata !== `${this.state.rxData.server}_${this.state.rxData.user}_${this.state.rxData.password}`) {
+            this.currentServerdata = `${this.state.rxData.server}_${this.state.rxData.user}_${this.state.rxData.password}`;
+            this.sipDestroy();
+
+            this.sipCreateTimer && clearTimeout(this.sipCreateTimer);
+            this.sipCreateTimer = setTimeout(() => {
+                this.sipCreateTimer = null;
+                this.sipCreate();
+            }, !this.sipFirstConnectionDone ? 0 : 1000); // first time with zero delay
         }
-        this.sipSocket = new WebSocketInterface(this.state.rxData.server);
-
-        this.sipUA = new UA({
-            sockets  : [this.sipSocket],
-            uri      : this.state.rxData.user,
-            password : this.state.rxData.password,
-        });
-
-        this.sipUA.on('newRTCSession', data => {
-            this.setState({ status: 'ringing', session: data.session });
-            this.setValue('ringing', true);
-            this.setValue('calling-number', data.request.from.uri.user);
-            data.session.on('failed', () => {
-                this.ringAudio.pause();
-                this.setState({ outputPeak: 0, inputPeak: 0, status: 'idle' });
-                this.setValue('calling', false);
-                this.setValue('ringing', false);
-                this.setValue('calling-number', '');
-            });
-            try {
-                this.ringAudio.play();
-            } catch (e) {
-                console.error(e);
-            }
-        });
-
-        this.sipUA.on('connecting', () => {
-            this.setState({ connectionStatus: 'connecting' });
-            this.setValue('connected', false);
-        });
-        this.sipUA.on('connected', () => {
-            this.setState({ connectionStatus: 'connected' });
-            this.setValue('connected', true);
-        });
-        this.sipUA.on('disconnected', () => {
-            this.setState({ connectionStatus: 'disconnected' });
-            this.setValue('connected', false);
-        });
-
-        this.sipUA.start();
     }
 
     async componentDidMount() {
@@ -610,22 +676,25 @@ class Sip extends Generic {
     renderWidgetBody(props) {
         super.renderWidgetBody(props);
 
-        const content = <>
-            {this.state.rxData.dialog ? <Chip
-                label={Generic.t(this.state.connectionStatus)}
-                style={colors[this.state.connectionStatus]}
-            /> : this.renderContent()}
-            {this.renderShowErrorDialog()}
-            {this.renderDialog()}
-        </>;
-
         if (this.state.rxData.invisible) {
             return undefined;
         }
+        let content;
 
-        return this.wrapContent(
-            content,
-        );
+        if (window.location.protocol !== 'https:') {
+            content = <div>{Generic.t('Please use HTTPS for SIP')}</div>;
+        } else {
+            content = <>
+                {this.state.rxData.dialog ? <Chip
+                    label={Generic.t(this.state.connectionStatus)}
+                    style={colors[this.state.connectionStatus]}
+                /> : this.renderContent()}
+                {this.renderShowErrorDialog()}
+                {this.renderDialog()}
+            </>;
+        }
+
+        return this.wrapContent(content);
     }
 }
 

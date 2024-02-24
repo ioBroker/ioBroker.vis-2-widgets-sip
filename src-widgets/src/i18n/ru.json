@@ -38,5 +38,11 @@
   "user": "Пользователь",
   "user_tooltip": "Пример: sip:1060@iobroker.net",
   "videoWidth": "Ширина видео",
-  "without_card": "Без карты"
+  "without_card": "Без карты",
+  "Please use HTTPS for SIP": "Пожалуйста, используйте HTTPS для SIP",
+  "Authentication Error. Please check your credentials": "Ошибка аутентификации. Пожалуйста, проверьте свои учетные данные",
+  "Ok": "OK",
+  "Authentication Error": "Ошибка аутентификации",
+  "Error": "Ошибка",
+  "Timeout": "Время соединения вышло"
 }
