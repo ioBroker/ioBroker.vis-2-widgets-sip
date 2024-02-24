@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-sip",
-    "version": "0.0.5",
+    "version": "0.1.0",
     "news": {
+      "0.1.0": {
+        "en": "corrected the status of connection",
+        "de": "den status der verbindung korrigiert",
+        "ru": "исправить состояние соединения",
+        "pt": "corrigiu o status da conexão",
+        "nl": "gecorrigeerd de status van de verbinding",
+        "fr": "corrigé l'état de la connexion",
+        "it": "corretto lo stato di connessione",
+        "es": "corregido el estado de conexión",
+        "pl": "poprawiono status połączenia",
+        "uk": "виправлено статус підключення",
+        "zh-cn": "更正连接状态"
+      },
       "0.0.5": {
         "en": "corrected the layout of buttons",
         "de": "korrigierte das layout der tasten",
