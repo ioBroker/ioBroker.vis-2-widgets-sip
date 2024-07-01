@@ -1,12 +1,11 @@
 import React from 'react';
-import { withStyles } from '@mui/styles';
 import {
     CircularProgress,
 } from '@mui/material';
 
 import Generic from './Generic';
 
-const styles = () => ({
+const styles = {
     camera: {
         width: '100%',
         height: '100%',
@@ -20,7 +19,7 @@ const styles = () => ({
         width: '100%',
         height: '100%',
     },
-});
+};
 
 class RtspCamera extends React.Component {
     constructor(props) {
@@ -257,9 +256,9 @@ class RtspCamera extends React.Component {
 
     render() {
         const content = <div
-            className={this.props.classes.imageContainer}
+            style={styles.imageContainer}
         >
-            {this.state.loading && this.state.alive && <CircularProgress className={this.props.classes.progress} />}
+            {this.state.loading && this.state.alive && <CircularProgress style={styles.progress} />}
             {!this.state.alive ? <div
                 style={{ position: 'absolute', top: 0, left: 0 }}
             >
@@ -267,7 +266,7 @@ class RtspCamera extends React.Component {
             </div> : null}
             <canvas
                 ref={this.videoRef}
-                className={this.props.classes.camera}
+                style={styles.camera}
             ></canvas>
         </div>;
 
@@ -275,4 +274,4 @@ class RtspCamera extends React.Component {
     }
 }
 
-export default withStyles(styles)(RtspCamera);
+export default RtspCamera;

@@ -1,8 +1,7 @@
-import React from 'react';
-import { withStyles } from '@mui/styles';
+import React, { Component } from 'react';
 import Generic from './Generic';
 
-const styles = () => ({
+const styles = {
     camera: {
         width: '100%',
         height: '100%',
@@ -16,9 +15,9 @@ const styles = () => ({
         width: '100%',
         height: '100%',
     },
-});
+};
 
-class SnapshotCamera extends React.Component {
+class SnapshotCamera extends Component {
     constructor(props) {
         super(props);
         this.videoRef = React.createRef();
@@ -144,7 +143,7 @@ class SnapshotCamera extends React.Component {
         const url = this.getUrl();
 
         const content = <div
-            className={this.props.classes.imageContainer}
+            style={styles.imageContainer}
         >
             {!this.state.alive ? <div
                 style={{ position: 'absolute', top: 20, left: 0 }}
@@ -154,7 +153,7 @@ class SnapshotCamera extends React.Component {
             {url ? <img
                 src={url}
                 ref={this.videoRef}
-                className={this.props.classes.camera}
+                style={styles.camera}
                 alt={this.props.rxData.camera}
             /> : Generic.t('No camera selected')}
             {this.state.alive && this.state.error ? <div
@@ -176,4 +175,4 @@ class SnapshotCamera extends React.Component {
     }
 }
 
-export default withStyles(styles)(SnapshotCamera);
+export default SnapshotCamera;

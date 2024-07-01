@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import PropTypes from 'prop-types';
-import { withStyles } from '@mui/styles';
 import { WebSocketInterface, UA } from 'jssip';
 
 import {
@@ -16,7 +15,7 @@ import SnapshotCamera from './SnapshotCamera';
 import RtspCamera from './RtspCamera';
 import ring from './ring.mp3';
 
-const styles = () => ({
+const styles = {
     content: {
         width: '100%',
         display: 'grid',
@@ -64,7 +63,7 @@ const styles = () => ({
         alignItems: 'center',
     },
     status: { display: 'flex', gap: 16, alignItems: 'center' },
-});
+};
 
 const colors = {
     connected: {
@@ -556,7 +555,7 @@ class Sip extends Generic {
 
     // eslint-disable-next-line class-methods-use-this
     renderSlider(value, icon) {
-        return <div className={this.props.classes.slider}>
+        return <div style={styles.slider}>
             <Slider
                 orientation="vertical"
                 value={value}
@@ -598,10 +597,10 @@ class Sip extends Generic {
     }
 
     renderContent() {
-        return <div className={this.props.classes.content}>
-            <div className={this.props.classes.topBlock}>
+        return <div style={styles.content}>
+            <div style={styles.topBlock}>
                 {this.state.rxData.camera && (this.state.status === 'active' || this.state.status === 'ringing') ?
-                    <div className={this.props.classes.camera}>
+                    <div style={styles.camera}>
                         {this.renderCamera()}
                     </div> : null}
                 {this.state.status === 'active' && <>
@@ -609,11 +608,11 @@ class Sip extends Generic {
                     {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
                 </>}
             </div>
-            <div className={this.props.classes.buttons}>
+            <div style={styles.buttons}>
                 {this.state.status === 'ringing' && <>
                     <Button
                         variant="contained"
-                        className={this.props.classes.greenButton}
+                        style={styles.greenButton}
                         onClick={() => this.answer(this.state.session)}
                         startIcon={<Call />}
                     >
@@ -621,7 +620,7 @@ class Sip extends Generic {
                     </Button>
                     <Button
                         variant="contained"
-                        className={this.props.classes.redButton}
+                        style={styles.redButton}
                         color="secondary"
                         onClick={() => this.disconnect()}
                         startIcon={<CallEnd />}
@@ -631,7 +630,7 @@ class Sip extends Generic {
                 </>}
                 {this.state.status === 'active' && <Button
                     variant="contained"
-                    className={this.props.classes.redButton}
+                    style={styles.redButton}
                     color="secondary"
                     onClick={() => this.disconnect()}
                     startIcon={<CallEnd />}
@@ -639,7 +638,7 @@ class Sip extends Generic {
                     {Generic.t('Hangup')}
                 </Button>}
             </div>
-            <div className={this.props.classes.status}>
+            <div style={styles.status}>
                 <Chip
                     label={Generic.t(this.state.connectionStatus)}
                     style={colors[this.state.connectionStatus]}
@@ -667,7 +666,7 @@ class Sip extends Generic {
             open={!0}
             fullWidth
         >
-            <DialogContent className={this.props.classes.dialog}>
+            <DialogContent style={styles.dialog}>
                 {this.renderContent()}
             </DialogContent>
         </Dialog>;
@@ -706,4 +705,4 @@ Sip.propTypes = {
     data: PropTypes.object,
 };
 
-export default withStyles(styles)(Sip);
+export default Sip;
