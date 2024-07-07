@@ -20,7 +20,7 @@ User: sip:1060@sip.iobroker.net
     ### **WORK IN PROGRESS**
 -->
 ## Changelog
-### **WORK IN PROGRESS**
+### 0.2.0 (2024-07-07)
 * (bluefox) removed withStyles package
 
 ### 0.1.0 (2024-02-24)

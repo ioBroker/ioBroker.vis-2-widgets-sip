@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-sip",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "news": {
+      "0.2.0": {
+        "en": "removed withStyles package",
+        "de": "entfernt mitStyles-Paket",
+        "ru": "удалить пакет со Стайлами",
+        "pt": "removido com pacote de Estilos",
+        "nl": "verwijderd metStyles pakket",
+        "fr": "enlevé avec l'emballageStyles",
+        "it": "rimosso con pacchettoStyles",
+        "es": "removido conStyles paquete",
+        "pl": "usunięty z pakietem Styles",
+        "uk": "пакет \"Стиль\"",
+        "zh-cn": "用 Styles 软件包删除"
+      },
       "0.1.0": {
         "en": "corrected the status of connection",
         "de": "den status der verbindung korrigiert",
