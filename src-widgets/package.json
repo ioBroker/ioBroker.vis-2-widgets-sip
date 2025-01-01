@@ -5,7 +5,7 @@
     "dependencies": {
         "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
         "@craco/craco": "^7.1.0",
-        "@iobroker/adapter-react-v5": "^6.0.13",
+        "@iobroker/adapter-react-v5": "^7.4.10",
         "@iobroker/vis-2-widgets-react-dev": "^2.0.1",
         "@mui/icons-material": "^5.15.21",
         "@mui/material": "^5.15.21",
