@@ -1,8 +1,21 @@
 {
   "common": {
     "name": "vis-2-widgets-sip",
-    "version": "0.2.1",
+    "version": "0.2.2",
     "news": {
+      "0.2.2": {
+        "en": "Activated prettier",
+        "de": "Aktivierte Tierart",
+        "ru": "Активация красивее",
+        "pt": "Mais bonito ativado",
+        "nl": "Geactiveerd mooier",
+        "fr": "Beautiful activé",
+        "it": "Prettiera attivata",
+        "es": "Mejor activado",
+        "pl": "Aktywowany pretier",
+        "uk": "Активоване предтитри",
+        "zh-cn": "启动的更美"
+      },
       "0.2.0": {
         "en": "removed withStyles package",
         "de": "entfernt mitStyles-Paket",
@@ -83,8 +96,8 @@
       "vis-2-widgets-sip"
     ],
     "licenseInformation": {
-        "type": "free",
-        "license": "MIT"
+      "type": "free",
+      "license": "MIT"
     },
     "platform": "Javascript/Node.js",
     "icon": "vis-2-widgets-sip.png",
