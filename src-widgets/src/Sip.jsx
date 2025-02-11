@@ -3,12 +3,19 @@ import PropTypes from 'prop-types';
 import { WebSocketInterface, UA } from 'jssip';
 
 import {
-    Button, Chip, Dialog, DialogContent, Select, MenuItem, CircularProgress,
-    Slider, DialogTitle, DialogContentText, DialogActions,
+    Button,
+    Chip,
+    Dialog,
+    DialogContent,
+    Select,
+    MenuItem,
+    CircularProgress,
+    Slider,
+    DialogTitle,
+    DialogContentText,
+    DialogActions,
 } from '@mui/material';
-import {
-    Call, CallEnd, Check, Mic, VolumeUp,
-} from '@mui/icons-material';
+import { Call, CallEnd, Check, Mic, VolumeUp } from '@mui/icons-material';
 
 import Generic from './Generic';
 import SnapshotCamera from './SnapshotCamera';
@@ -99,7 +106,9 @@ const CameraField = props => {
                         enabled: iCamera.enabled !== false,
                         value: `${instanceId}/${iCamera.name}`,
                         label: `cameras.${instanceId}/${iCamera.name}`,
-                        subLabel: iCamera.desc ? `${iCamera.desc}/${iCamera.ip || iCamera.url || ''}` : (iCamera.ip || iCamera.url || ''),
+                        subLabel: iCamera.desc
+                            ? `${iCamera.desc}/${iCamera.ip || iCamera.url || ''}`
+                            : iCamera.ip || iCamera.url || '',
                     });
                 });
             });
@@ -107,37 +116,43 @@ const CameraField = props => {
         })();
     }, [props.context.socket]);
 
-    return cameras ? <Select
-        fullWidth
-        variant="standard"
-        value={camera}
-        onChange={e => {
-            props.setData({ camera: e.target.value });
-            setCamera(e.target.value);
-        }}
-    >
-        <MenuItem value="">
-            {Generic.t('none')}
-        </MenuItem>
-        {cameras.map(iCamera => <MenuItem
-            key={iCamera.value}
-            value={iCamera.value}
-            style={{ display: 'block', opacity: iCamera.enabled ? 1 : 0.5 }}
+    return cameras ? (
+        <Select
+            fullWidth
+            variant="standard"
+            value={camera}
+            onChange={e => {
+                props.setData({ camera: e.target.value });
+                setCamera(e.target.value);
+            }}
         >
-            <div>{iCamera.label}</div>
-            <div style={{ fontSize: 10, fontStyle: 'italic', opacity: 0.7 }}>{iCamera.subLabel}</div>
-            {!iCamera.enabled ? <div
-                style={{
-                    fontSize: 10,
-                    fontStyle: 'italic',
-                    opacity: 0.7,
-                    color: 'red',
-                }}
-            >
-                {Generic.t('disabled')}
-            </div> : null}
-        </MenuItem>)}
-    </Select> : <CircularProgress />;
+            <MenuItem value="">{Generic.t('none')}</MenuItem>
+            {cameras.map(iCamera => (
+                <MenuItem
+                    key={iCamera.value}
+                    value={iCamera.value}
+                    style={{ display: 'block', opacity: iCamera.enabled ? 1 : 0.5 }}
+                >
+                    <div>{iCamera.label}</div>
+                    <div style={{ fontSize: 10, fontStyle: 'italic', opacity: 0.7 }}>{iCamera.subLabel}</div>
+                    {!iCamera.enabled ? (
+                        <div
+                            style={{
+                                fontSize: 10,
+                                fontStyle: 'italic',
+                                opacity: 0.7,
+                                color: 'red',
+                            }}
+                        >
+                            {Generic.t('disabled')}
+                        </div>
+                    ) : null}
+                </MenuItem>
+            ))}
+        </Select>
+    ) : (
+        <CircularProgress />
+    );
 };
 
 class Sip extends Generic {
@@ -183,7 +198,7 @@ class Sip extends Generic {
             visSetLabel: 'set_label', // Label of this widget set
             visSetColor: '#0783ff', // Color of this widget set
 
-            visWidgetLabel: 'sip',  // Label of widget
+            visWidgetLabel: 'sip', // Label of widget
             visName: 'Sip',
             visAttrs: [
                 {
@@ -245,12 +260,14 @@ class Sip extends Generic {
                             label: 'Camera',
                             name: 'camera',
                             type: 'custom',
-                            component: (field, data, setData, props) => <CameraField
-                                field={field}
-                                data={data}
-                                setData={setData}
-                                context={props.context}
-                            />,
+                            component: (field, data, setData, props) => (
+                                <CameraField
+                                    field={field}
+                                    data={data}
+                                    setData={setData}
+                                    context={props.context}
+                                />
+                            ),
                         },
                         {
                             name: 'pollingInterval',
@@ -334,7 +351,9 @@ class Sip extends Generic {
             } catch (err) {
                 console.warn(`Cannot play audio: ${err}`);
                 if (!this.state.rxData['ringing-oid'] && !this.state.rxData['calling-number-oid']) {
-                    this.setState({ showError: 'Cannot play audio. You should use Object ID to trigger the audio somewhere else' });
+                    this.setState({
+                        showError: 'Cannot play audio. You should use Object ID to trigger the audio somewhere else',
+                    });
                 }
             }
 
@@ -348,7 +367,9 @@ class Sip extends Generic {
             outputAnalyser.getByteFrequencyData(outputFrequencyData);
 
             const inputAudioContext = new AudioContext();
-            const input = inputAudioContext.createMediaStreamSource(await navigator.mediaDevices.getUserMedia({ audio: true, video: false }));
+            const input = inputAudioContext.createMediaStreamSource(
+                await navigator.mediaDevices.getUserMedia({ audio: true, video: false }),
+            );
             const inputAnalyser = inputAudioContext.createAnalyser();
             input.connect(inputAnalyser);
             // inputAnalyser.connect(inputAudioContext.destination);
@@ -479,7 +500,9 @@ class Sip extends Generic {
         if (cameraData && cameraData.length === 2) {
             const cameraInstance = cameraData[0];
             const cameraName = cameraData[1];
-            const instanceObject = await this.props.context.socket.getObject(`system.adapter.cameras.${cameraInstance}`);
+            const instanceObject = await this.props.context.socket.getObject(
+                `system.adapter.cameras.${cameraInstance}`,
+            );
             if (instanceObject && instanceObject.native && instanceObject.native.cameras) {
                 camera = instanceObject.native.cameras.find(iCamera => iCamera.name === cameraName);
             }
@@ -490,15 +513,21 @@ class Sip extends Generic {
             this.setState({ cameraType: null });
         }
 
-        if (this.currentServerdata !== `${this.state.rxData.server}_${this.state.rxData.user}_${this.state.rxData.password}`) {
+        if (
+            this.currentServerdata !==
+            `${this.state.rxData.server}_${this.state.rxData.user}_${this.state.rxData.password}`
+        ) {
             this.currentServerdata = `${this.state.rxData.server}_${this.state.rxData.user}_${this.state.rxData.password}`;
             this.sipDestroy();
 
             this.sipCreateTimer && clearTimeout(this.sipCreateTimer);
-            this.sipCreateTimer = setTimeout(() => {
-                this.sipCreateTimer = null;
-                this.sipCreate();
-            }, !this.sipFirstConnectionDone ? 0 : 1000); // first time with zero delay
+            this.sipCreateTimer = setTimeout(
+                () => {
+                    this.sipCreateTimer = null;
+                    this.sipCreate();
+                },
+                !this.sipFirstConnectionDone ? 0 : 1000,
+            ); // first time with zero delay
         }
     }
 
@@ -535,36 +564,42 @@ class Sip extends Generic {
 
     renderCamera() {
         if (this.state.cameraType === 'rtsp') {
-            return <RtspCamera
-                {...this.props}
-                rxData={this.state.rxData}
-                onMount={camera => this.camera = camera}
-                onUnmount={() => this.camera = null}
-            />;
+            return (
+                <RtspCamera
+                    {...this.props}
+                    rxData={this.state.rxData}
+                    onMount={camera => (this.camera = camera)}
+                    onUnmount={() => (this.camera = null)}
+                />
+            );
         }
         if (this.state.cameraType === 'url') {
-            return <SnapshotCamera
-                {...this.props}
-                rxData={this.state.rxData}
-                onMount={camera => this.camera = camera}
-                onUnmount={() => this.camera = null}
-            />;
+            return (
+                <SnapshotCamera
+                    {...this.props}
+                    rxData={this.state.rxData}
+                    onMount={camera => (this.camera = camera)}
+                    onUnmount={() => (this.camera = null)}
+                />
+            );
         }
         return undefined;
     }
 
     // eslint-disable-next-line class-methods-use-this
     renderSlider(value, icon) {
-        return <div style={styles.slider}>
-            <Slider
-                orientation="vertical"
-                value={value}
-                disabled
-                min={20}
-                max={80}
-            />
-            {icon}
-        </div>;
+        return (
+            <div style={styles.slider}>
+                <Slider
+                    orientation="vertical"
+                    value={value}
+                    disabled
+                    min={20}
+                    max={80}
+                />
+                {icon}
+            </div>
+        );
     }
 
     renderShowErrorDialog() {
@@ -572,78 +607,84 @@ class Sip extends Generic {
             return null;
         }
 
-        return <Dialog
-            open={!0}
-            onClose={() => this.setState({ showError: '' })}
-        >
-            <DialogTitle>{Generic.t('Error')}</DialogTitle>
-            <DialogContent>
-                <DialogContentText>
-                    {Generic.t(this.state.showError)}
-                </DialogContentText>
-            </DialogContent>
-            <DialogActions>
-                <Button
-                    color="primary"
-                    variant="contained"
-                    default
-                    onClick={() => this.setState({ showError: '' })}
-                    startIcon={<Check />}
-                >
-                    {Generic.t('Ok')}
-                </Button>
-            </DialogActions>
-        </Dialog>;
+        return (
+            <Dialog
+                open={!0}
+                onClose={() => this.setState({ showError: '' })}
+            >
+                <DialogTitle>{Generic.t('Error')}</DialogTitle>
+                <DialogContent>
+                    <DialogContentText>{Generic.t(this.state.showError)}</DialogContentText>
+                </DialogContent>
+                <DialogActions>
+                    <Button
+                        color="primary"
+                        variant="contained"
+                        default
+                        onClick={() => this.setState({ showError: '' })}
+                        startIcon={<Check />}
+                    >
+                        {Generic.t('Ok')}
+                    </Button>
+                </DialogActions>
+            </Dialog>
+        );
     }
 
     renderContent() {
-        return <div style={styles.content}>
-            <div style={styles.topBlock}>
-                {this.state.rxData.camera && (this.state.status === 'active' || this.state.status === 'ringing') ?
-                    <div style={styles.camera}>
-                        {this.renderCamera()}
-                    </div> : null}
-                {this.state.status === 'active' && <>
-                    {this.renderSlider(this.state.inputPeak, <Mic />)}
-                    {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
-                </>}
-            </div>
-            <div style={styles.buttons}>
-                {this.state.status === 'ringing' && <>
-                    <Button
-                        variant="contained"
-                        style={styles.greenButton}
-                        onClick={() => this.answer(this.state.session)}
-                        startIcon={<Call />}
-                    >
-                        {Generic.t('Answer')}
-                    </Button>
-                    <Button
-                        variant="contained"
-                        style={styles.redButton}
-                        color="secondary"
-                        onClick={() => this.disconnect()}
-                        startIcon={<CallEnd />}
-                    >
-                        {Generic.t('Reject')}
-                    </Button>
-                </>}
-                {this.state.status === 'active' && <Button
-                    variant="contained"
-                    style={styles.redButton}
-                    color="secondary"
-                    onClick={() => this.disconnect()}
-                    startIcon={<CallEnd />}
-                >
-                    {Generic.t('Hangup')}
-                </Button>}
-            </div>
-            <div style={styles.status}>
-                <Chip
-                    label={Generic.t(this.state.connectionStatus)}
-                    style={colors[this.state.connectionStatus]}
-                />
-                {/* <Slider
+        return (
+            <div style={styles.content}>
+                <div style={styles.topBlock}>
+                    {this.state.rxData.camera && (this.state.status === 'active' || this.state.status === 'ringing') ? (
+                        <div style={styles.camera}>{this.renderCamera()}</div>
+                    ) : null}
+                    {this.state.status === 'active' && (
+                        <>
+                            {this.renderSlider(this.state.inputPeak, <Mic />)}
+                            {this.renderSlider(this.state.outputPeak, <VolumeUp />)}
+                        </>
+                    )}
+                </div>
+                <div style={styles.buttons}>
+                    {this.state.status === 'ringing' && (
+                        <>
+                            <Button
+                                variant="contained"
+                                style={styles.greenButton}
+                                onClick={() => this.answer(this.state.session)}
+                                startIcon={<Call />}
+                            >
+                                {Generic.t('Answer')}
+                            </Button>
+                            <Button
+                                variant="contained"
+                                style={styles.redButton}
+                                color="secondary"
+                                onClick={() => this.disconnect()}
+                                startIcon={<CallEnd />}
+                            >
+                                {Generic.t('Reject')}
+                            </Button>
+                        </>
+                    )}
+                    {this.state.status === 'active' && (
+                        <Button
+                            variant="contained"
+                            style={styles.redButton}
+                            color="secondary"
+                            onClick={() => this.disconnect()}
+                            startIcon={<CallEnd />}
+                        >
+                            {Generic.t('Hangup')}
+                        </Button>
+                    )}
+                </div>
+                <div style={styles.status}>
+                    <Chip
+                        label={Generic.t(this.state.connectionStatus)}
+                        style={colors[this.state.connectionStatus]}
+                    />
+                    {/* <Slider
                     value={this.state.volume}
                     onChange={(_, value) => this.setVolume(value)}
                     min={0}
@@ -653,8 +694,9 @@ class Sip extends Generic {
                     valueLabelDisplay="auto"
                 />
                 <VolumeUp /> */}
+                </div>
             </div>
-        </div>;
+        );
     }
 
     renderDialog() {
@@ -662,14 +704,14 @@ class Sip extends Generic {
             return null;
         }
 
-        return <Dialog
-            open={!0}
-            fullWidth
-        >
-            <DialogContent style={styles.dialog}>
-                {this.renderContent()}
-            </DialogContent>
-        </Dialog>;
+        return (
+            <Dialog
+                open={!0}
+                fullWidth
+            >
+                <DialogContent style={styles.dialog}>{this.renderContent()}</DialogContent>
+            </Dialog>
+        );
     }
 
     renderWidgetBody(props) {
@@ -683,14 +725,20 @@ class Sip extends Generic {
         if (window.location.protocol !== 'https:') {
             content = <div>{Generic.t('Please use HTTPS for SIP')}</div>;
         } else {
-            content = <>
-                {this.state.rxData.dialog ? <Chip
-                    label={Generic.t(this.state.connectionStatus)}
-                    style={colors[this.state.connectionStatus]}
-                /> : this.renderContent()}
-                {this.renderShowErrorDialog()}
-                {this.renderDialog()}
-            </>;
+            content = (
+                <>
+                    {this.state.rxData.dialog ? (
+                        <Chip
+                            label={Generic.t(this.state.connectionStatus)}
+                            style={colors[this.state.connectionStatus]}
+                        />
+                    ) : (
+                        this.renderContent()
+                    )}
+                    {this.renderShowErrorDialog()}
+                    {this.renderDialog()}
+                </>
+            );
         }
 
         return this.wrapContent(content);

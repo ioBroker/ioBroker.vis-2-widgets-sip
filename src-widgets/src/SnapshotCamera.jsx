@@ -49,11 +49,17 @@ class SnapshotCamera extends Component {
 
         if (this.subsribedOnAlive !== (data ? data.instanceId : null)) {
             if (this.subsribedOnAlive) {
-                this.props.context.socket.unsubscribeState(`system.adapter.cameras.${this.subsribedOnAlive}.alive`, this.onAliveChanged);
+                this.props.context.socket.unsubscribeState(
+                    `system.adapter.cameras.${this.subsribedOnAlive}.alive`,
+                    this.onAliveChanged,
+                );
                 this.subsribedOnAlive = '';
             }
             if (data) {
-                this.props.context.socket.subscribeState(`system.adapter.cameras.${data.instanceId}.alive`, this.onAliveChanged);
+                this.props.context.socket.subscribeState(
+                    `system.adapter.cameras.${data.instanceId}.alive`,
+                    this.onAliveChanged,
+                );
                 this.subsribedOnAlive = data.instanceId;
             }
         }
@@ -89,14 +95,17 @@ class SnapshotCamera extends Component {
             this.pollingInterval = null;
         }
         if (this.state.alive) {
-            this.pollingInterval = setInterval(this.updateImage, parseInt(this.props.rxData.pollingInterval, 10) || 500);
+            this.pollingInterval = setInterval(
+                this.updateImage,
+                parseInt(this.props.rxData.pollingInterval, 10) || 500,
+            );
         }
     }
 
     onAliveChanged = (id, state) => {
         const data = SnapshotCamera.getNameAndInstance(this.props.rxData.camera);
         if (data && id === `system.adapter.cameras.${data.instanceId}.alive`) {
-            const alive = !!(state?.val);
+            const alive = !!state?.val;
             if (alive !== this.state.alive) {
                 this.setState({ alive }, () => this.restartPollingInterval());
             }
@@ -119,7 +128,10 @@ class SnapshotCamera extends Component {
         this.pollingInterval = null;
 
         if (this.subsribedOnAlive) {
-            this.props.context.socket.unsubscribeState(`system.adapter.cameras.${this.subsribedOnAlive}.alive`, this.onAliveChanged);
+            this.props.context.socket.unsubscribeState(
+                `system.adapter.cameras.${this.subsribedOnAlive}.alive`,
+                this.onAliveChanged,
+            );
             this.subsribedOnAlive = null;
         }
     }
@@ -142,34 +154,37 @@ class SnapshotCamera extends Component {
     render() {
         const url = this.getUrl();
 
-        const content = <div
-            style={styles.imageContainer}
-        >
-            {!this.state.alive ? <div
-                style={{ position: 'absolute', top: 20, left: 0 }}
-            >
-                {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
-            </div> : null}
-            {url ? <img
-                src={url}
-                ref={this.videoRef}
-                style={styles.camera}
-                alt={this.props.rxData.camera}
-            /> : Generic.t('No camera selected')}
-            {this.state.alive && this.state.error ? <div
-                style={{
-                    position: 'absolute',
-                    top: 20,
-                    left: 0,
-                }}
-            >
-                <div style={{ color: 'red' }}>
-                    {Generic.t('Cannot load URL')}
-                    :
-                </div>
-                <div>{this.getUrl(true)}</div>
-            </div> : null}
-        </div>;
+        const content = (
+            <div style={styles.imageContainer}>
+                {!this.state.alive ? (
+                    <div style={{ position: 'absolute', top: 20, left: 0 }}>
+                        {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
+                    </div>
+                ) : null}
+                {url ? (
+                    <img
+                        src={url}
+                        ref={this.videoRef}
+                        style={styles.camera}
+                        alt={this.props.rxData.camera}
+                    />
+                ) : (
+                    Generic.t('No camera selected')
+                )}
+                {this.state.alive && this.state.error ? (
+                    <div
+                        style={{
+                            position: 'absolute',
+                            top: 20,
+                            left: 0,
+                        }}
+                    >
+                        <div style={{ color: 'red' }}>{Generic.t('Cannot load URL')}:</div>
+                        <div>{this.getUrl(true)}</div>
+                    </div>
+                ) : null}
+            </div>
+        );
 
         return content;
     }

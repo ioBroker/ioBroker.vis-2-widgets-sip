@@ -1,120 +1,112 @@
 {
-  "common": {
-    "name": "vis-2-widgets-sip",
-    "version": "0.2.0",
-    "news": {
-      "0.2.0": {
-        "en": "removed withStyles package",
-        "de": "entfernt mitStyles-Paket",
-        "ru": "удалить пакет со Стайлами",
-        "pt": "removido com pacote de Estilos",
-        "nl": "verwijderd metStyles pakket",
-        "fr": "enlevé avec l'emballageStyles",
-        "it": "rimosso con pacchettoStyles",
-        "es": "removido conStyles paquete",
-        "pl": "usunięty z pakietem Styles",
-        "uk": "пакет \"Стиль\"",
-        "zh-cn": "用 Styles 软件包删除"
-      },
-      "0.1.0": {
-        "en": "corrected the status of connection",
-        "de": "den status der verbindung korrigiert",
-        "ru": "исправить состояние соединения",
-        "pt": "corrigiu o status da conexão",
-        "nl": "gecorrigeerd de status van de verbinding",
-        "fr": "corrigé l'état de la connexion",
-        "it": "corretto lo stato di connessione",
-        "es": "corregido el estado de conexión",
-        "pl": "poprawiono status połączenia",
-        "uk": "виправлено статус підключення",
-        "zh-cn": "更正连接状态"
-      },
-      "0.0.5": {
-        "en": "corrected the layout of buttons",
-        "de": "korrigierte das layout der tasten",
-        "ru": "исправить расположение кнопок",
-        "pt": "corrigido o layout dos botões",
-        "nl": "gecorrigeerd de indeling van de knoppen",
-        "fr": "corrigé la disposition des boutons",
-        "it": "corretto il layout dei pulsanti",
-        "es": "corregido el diseño de botones",
-        "pl": "poprawiono układ przycisków",
-        "uk": "виправлено макет гудзиків",
-        "zh-cn": "修改按钮的布局"
-      },
-      "0.0.4": {
-        "en": "corrected the layout of buttons",
-        "de": "korrigierte das layout der tasten",
-        "ru": "исправить расположение кнопок",
-        "pt": "corrigido o layout dos botões",
-        "nl": "gecorrigeerd de indeling van de knoppen",
-        "fr": "corrigé la disposition des boutons",
-        "it": "corretto il layout dei pulsanti",
-        "es": "corregido el diseño de botones",
-        "pl": "poprawiono układ przycisków",
-        "uk": "виправлено макет гудзиків",
-        "zh-cn": "修改按钮的布局"
-      },
-      "0.0.3": {
-        "en": "initial commit",
-        "de": "erster auftrag",
-        "ru": "первоначальный коммит",
-        "pt": "commit inicial",
-        "nl": ".",
-        "fr": "initial commit",
-        "it": "commit iniziale",
-        "es": "inicial",
-        "pl": "wstępny proces",
-        "uk": "початкова комісія",
-        "zh-cn": "初步承诺"
-      }
+    "common": {
+        "name": "vis-2-widgets-sip",
+        "version": "0.2.0",
+        "news": {
+            "0.2.0": {
+                "en": "removed withStyles package",
+                "de": "entfernt mitStyles-Paket",
+                "ru": "удалить пакет со Стайлами",
+                "pt": "removido com pacote de Estilos",
+                "nl": "verwijderd metStyles pakket",
+                "fr": "enlevé avec l'emballageStyles",
+                "it": "rimosso con pacchettoStyles",
+                "es": "removido conStyles paquete",
+                "pl": "usunięty z pakietem Styles",
+                "uk": "пакет \"Стиль\"",
+                "zh-cn": "用 Styles 软件包删除"
+            },
+            "0.1.0": {
+                "en": "corrected the status of connection",
+                "de": "den status der verbindung korrigiert",
+                "ru": "исправить состояние соединения",
+                "pt": "corrigiu o status da conexão",
+                "nl": "gecorrigeerd de status van de verbinding",
+                "fr": "corrigé l'état de la connexion",
+                "it": "corretto lo stato di connessione",
+                "es": "corregido el estado de conexión",
+                "pl": "poprawiono status połączenia",
+                "uk": "виправлено статус підключення",
+                "zh-cn": "更正连接状态"
+            },
+            "0.0.5": {
+                "en": "corrected the layout of buttons",
+                "de": "korrigierte das layout der tasten",
+                "ru": "исправить расположение кнопок",
+                "pt": "corrigido o layout dos botões",
+                "nl": "gecorrigeerd de indeling van de knoppen",
+                "fr": "corrigé la disposition des boutons",
+                "it": "corretto il layout dei pulsanti",
+                "es": "corregido el diseño de botones",
+                "pl": "poprawiono układ przycisków",
+                "uk": "виправлено макет гудзиків",
+                "zh-cn": "修改按钮的布局"
+            },
+            "0.0.4": {
+                "en": "corrected the layout of buttons",
+                "de": "korrigierte das layout der tasten",
+                "ru": "исправить расположение кнопок",
+                "pt": "corrigido o layout dos botões",
+                "nl": "gecorrigeerd de indeling van de knoppen",
+                "fr": "corrigé la disposition des boutons",
+                "it": "corretto il layout dei pulsanti",
+                "es": "corregido el diseño de botones",
+                "pl": "poprawiono układ przycisków",
+                "uk": "виправлено макет гудзиків",
+                "zh-cn": "修改按钮的布局"
+            },
+            "0.0.3": {
+                "en": "initial commit",
+                "de": "erster auftrag",
+                "ru": "первоначальный коммит",
+                "pt": "commit inicial",
+                "nl": ".",
+                "fr": "initial commit",
+                "it": "commit iniziale",
+                "es": "inicial",
+                "pl": "wstępny proces",
+                "uk": "початкова комісія",
+                "zh-cn": "初步承诺"
+            }
+        },
+        "title": "SIP Vis-2 Widgets",
+        "titleLang": {
+            "en": "SIP Vis-2 Widgets"
+        },
+        "desc": {
+            "en": "Widget for SIP communication from browser"
+        },
+        "authors": ["bluefox <dogafox@gmail.com>"],
+        "keywords": ["vis-2-widgets-sip"],
+        "license": "MIT",
+        "platform": "Javascript/Node.js",
+        "icon": "vis-2-widgets-sip.png",
+        "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.vis-2-widgets-sip/master/admin/vis-2-widgets-sip.png",
+        "enabled": true,
+        "readme": "https://github.com/ioBroker/ioBroker.vis-2-widgets-sip/blob/master/README.md",
+        "loglevel": "info",
+        "mode": "once",
+        "singleton": true,
+        "adminUI": {
+            "config": "none"
+        },
+        "nogit": true,
+        "onlyWWW": true,
+        "type": "visualization-widgets",
+        "connectionType": "cloud",
+        "dataSource": "poll",
+        "visWidgets": {
+            "vis2Sip": {
+                "i18n": "component",
+                "name": "vis2Sip",
+                "url": "vis-2-widgets-sip/customWidgets.js",
+                "components": ["Sip"]
+            }
+        },
+        "restartAdapters": ["vis-2"],
+        "tier": 3
     },
-    "title": "SIP Vis-2 Widgets",
-    "titleLang": {
-      "en": "SIP Vis-2 Widgets"
-    },
-    "desc": {
-      "en": "Widget for SIP communication from browser"
-    },
-    "authors": [
-      "bluefox <dogafox@gmail.com>"
-    ],
-    "keywords": [
-      "vis-2-widgets-sip"
-    ],
-    "license": "MIT",
-    "platform": "Javascript/Node.js",
-    "icon": "vis-2-widgets-sip.png",
-    "extIcon": "https://raw.githubusercontent.com/ioBroker/ioBroker.vis-2-widgets-sip/master/admin/vis-2-widgets-sip.png",
-    "enabled": true,
-    "readme": "https://github.com/ioBroker/ioBroker.vis-2-widgets-sip/blob/master/README.md",
-    "loglevel": "info",
-    "mode": "once",
-    "singleton": true,
-    "adminUI": {
-      "config": "none"
-    },
-    "nogit": true,
-    "onlyWWW": true,
-    "type": "visualization-widgets",
-    "connectionType": "cloud",
-    "dataSource": "poll",
-    "visWidgets": {
-      "vis2Sip": {
-        "i18n": "component",
-        "name": "vis2Sip",
-        "url": "vis-2-widgets-sip/customWidgets.js",
-        "components": [
-          "Sip"
-        ]
-      }
-    },
-    "restartAdapters": [
-      "vis-2"
-    ],
-    "tier": 3
-  },
-  "native": {},
-  "objects": [],
-  "instanceObjects": []
+    "native": {},
+    "objects": [],
+    "instanceObjects": []
 }

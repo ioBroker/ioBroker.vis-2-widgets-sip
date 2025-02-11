@@ -42,66 +42,79 @@ class App extends WidgetDemoApp {
 
     onConnectionChanged = isConnected => {
         if (isConnected) {
-            this.socket.getSystemConfig()
-                .then(systemConfig => this.setState({ systemConfig }));
+            this.socket.getSystemConfig().then(systemConfig => this.setState({ systemConfig }));
         }
     };
 
     renderWidget() {
         const widgets = {
-            sip: <Sip
-                key="Actual"
-                context={{
-                    socket: this.socket,
-                    systemConfig: this.state.systemConfig,
-                }}
-                themeType={this.state.themeType}
-                style={{
-                    width: 800,
-                    height: 600,
-                }}
-                onChangeSettings={data3d => {
-                    this.setState({ data3d });
-                    window.localStorage.setItem('data3d', JSON.stringify(data3d));
-                }}
-                data={{
-                    name: 'Actual temperature',
-                    server: this.state.values.server,
-                    user: this.state.values.user,
-                    password: this.state.values.password,
-                    camera: '0/cam1',
-                    // dialog: true,
-                }}
-                fake
-            />,
+            sip: (
+                <Sip
+                    key="Actual"
+                    context={{
+                        socket: this.socket,
+                        systemConfig: this.state.systemConfig,
+                    }}
+                    themeType={this.state.themeType}
+                    style={{
+                        width: 800,
+                        height: 600,
+                    }}
+                    onChangeSettings={data3d => {
+                        this.setState({ data3d });
+                        window.localStorage.setItem('data3d', JSON.stringify(data3d));
+                    }}
+                    data={{
+                        name: 'Actual temperature',
+                        server: this.state.values.server,
+                        user: this.state.values.user,
+                        password: this.state.values.password,
+                        camera: '0/cam1',
+                        // dialog: true,
+                    }}
+                    fake
+                />
+            ),
         };
 
-        return <Box component="div" sx={styles.app}>
-            <div>
-                {Object.keys(widgets).map(key => <div key={key} style={{ display: 'flex', alignItems: 'center' }}>
-                    <Checkbox
-                        checked={!this.state.disabled[key]}
-                        onChange={e => {
-                            const disabled = JSON.parse(JSON.stringify(this.state.disabled));
-                            disabled[key] = !e.target.checked;
-                            window.localStorage.setItem('disabled', JSON.stringify(disabled));
-                            this.setState({ disabled });
-                        }}
-                    />
-                    {key}
-                </div>)}
-                {['server', 'user', 'password'].map(key => <TextField
-                    key={key}
-                    label={key}
-                    value={this.state.values[key]}
-                    onChange={e => {
-                        this.setState({ values: { ...this.state.values, [key]: e.target.value } });
-                        window.localStorage.setItem(key, e.target.value);
-                    }}
-                />)}
-            </div>
-            {Object.keys(widgets).map(key => (this.state.disabled[key] ? null : widgets[key]))}
-        </Box>;
+        return (
+            <Box
+                component="div"
+                sx={styles.app}
+            >
+                <div>
+                    {Object.keys(widgets).map(key => (
+                        <div
+                            key={key}
+                            style={{ display: 'flex', alignItems: 'center' }}
+                        >
+                            <Checkbox
+                                checked={!this.state.disabled[key]}
+                                onChange={e => {
+                                    const disabled = JSON.parse(JSON.stringify(this.state.disabled));
+                                    disabled[key] = !e.target.checked;
+                                    window.localStorage.setItem('disabled', JSON.stringify(disabled));
+                                    this.setState({ disabled });
+                                }}
+                            />
+                            {key}
+                        </div>
+                    ))}
+                    {['server', 'user', 'password'].map(key => (
+                        <TextField
+                            key={key}
+                            label={key}
+                            value={this.state.values[key]}
+                            onChange={e => {
+                                this.setState({ values: { ...this.state.values, [key]: e.target.value } });
+                                window.localStorage.setItem(key, e.target.value);
+                            }}
+                        />
+                    ))}
+                </div>
+                {Object.keys(widgets).map(key => (this.state.disabled[key] ? null : widgets[key]))}
+            </Box>
+        );
     }
 }
 

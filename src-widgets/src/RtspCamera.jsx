@@ -1,7 +1,5 @@
 import React from 'react';
-import {
-    CircularProgress,
-} from '@mui/material';
+import { CircularProgress } from '@mui/material';
 
 import Generic from './Generic';
 
@@ -122,11 +120,20 @@ class RtspCamera extends React.Component {
                 if (this.currentCam) {
                     const { instanceId, name } = RtspCamera.getNameAndInstance(this.currentCam);
                     if (this.useMessages) {
-                        await this.props.context.socket.unsubscribeFromInstance(`cameras.${instanceId}`, `startCamera/${name}`, this.onCameras);
+                        await this.props.context.socket.unsubscribeFromInstance(
+                            `cameras.${instanceId}`,
+                            `startCamera/${name}`,
+                            this.onCameras,
+                        );
                     } else {
                         // Bluefox 2023.09.28: delete this branch after js-controller 5.0.13 will be mainstream
-                        await this.props.context.socket.setState(`cameras.${instanceId}.${name}.running`, { val: false });
-                        await this.props.context.socket.unsubscribeState(`cameras.${instanceId}.${name}.stream`, this.updateStream);
+                        await this.props.context.socket.setState(`cameras.${instanceId}.${name}.running`, {
+                            val: false,
+                        });
+                        await this.props.context.socket.unsubscribeState(
+                            `cameras.${instanceId}.${name}.stream`,
+                            this.updateStream,
+                        );
                     }
                 }
 
@@ -160,7 +167,10 @@ class RtspCamera extends React.Component {
                 const { instanceId, name } = RtspCamera.getNameAndInstance(this.currentCam);
                 if (!this.useMessages) {
                     await this.props.context.socket.setState(`cameras.${instanceId}.${name}.running`, { val: false });
-                    await this.props.context.socket.unsubscribeState(`cameras.${instanceId}.${name}.stream`, this.updateStream);
+                    await this.props.context.socket.unsubscribeState(
+                        `cameras.${instanceId}.${name}.stream`,
+                        this.updateStream,
+                    );
                 }
                 this.currentCam = null;
             }
@@ -185,7 +195,10 @@ class RtspCamera extends React.Component {
             const { instanceId, name } = RtspCamera.getNameAndInstance(this.currentCam);
             if (!this.useMessages) {
                 await this.props.context.socket.setState(`cameras.${instanceId}.${name}.running`, { val: false });
-                await this.props.context.socket.unsubscribeState(`cameras.${instanceId}.${name}.stream`, this.updateStream);
+                await this.props.context.socket.unsubscribeState(
+                    `cameras.${instanceId}.${name}.stream`,
+                    this.updateStream,
+                );
             }
             this.currentCam = null;
         }
@@ -200,11 +213,17 @@ class RtspCamera extends React.Component {
 
         if (this.subsribedOnAlive !== (data ? data.instanceId : null)) {
             if (this.subsribedOnAlive) {
-                this.props.context.socket.unsubscribeState(`system.adapter.cameras.${this.subsribedOnAlive}.alive`, this.onAliveChanged);
+                this.props.context.socket.unsubscribeState(
+                    `system.adapter.cameras.${this.subsribedOnAlive}.alive`,
+                    this.onAliveChanged,
+                );
                 this.subsribedOnAlive = '';
             }
             if (data) {
-                this.props.context.socket.subscribeState(`system.adapter.cameras.${data.instanceId}.alive`, this.onAliveChanged);
+                this.props.context.socket.subscribeState(
+                    `system.adapter.cameras.${data.instanceId}.alive`,
+                    this.onAliveChanged,
+                );
                 this.subsribedOnAlive = data.instanceId;
             }
         }
@@ -213,7 +232,7 @@ class RtspCamera extends React.Component {
     onAliveChanged = (id, state) => {
         const data = RtspCamera.getNameAndInstance(this.props.rxData.camera);
         if (data && id === `system.adapter.cameras.${data.instanceId}.alive`) {
-            const alive = !!(state?.val);
+            const alive = !!state?.val;
             if (alive !== this.state.alive) {
                 this.setState({ alive }, () => this.propertiesUpdate());
             }
@@ -241,34 +260,38 @@ class RtspCamera extends React.Component {
         this.videoInterval = null;
 
         if (this.subsribedOnAlive) {
-            this.props.context.socket.unsubscribeState(`system.adapter.cameras.${this.subsribedOnAlive}.alive`, this.onAliveChanged);
+            this.props.context.socket.unsubscribeState(
+                `system.adapter.cameras.${this.subsribedOnAlive}.alive`,
+                this.onAliveChanged,
+            );
             this.subsribedOnAlive = null;
         }
 
         if (this.currentCam) {
             const { instanceId, name } = RtspCamera.getNameAndInstance(this.currentCam);
             if (this.useMessages) {
-                this.props.context.socket.unsubscribeFromInstance(`cameras.${instanceId}`, `startCamera/${name}`, this.onCameras)
+                this.props.context.socket
+                    .unsubscribeFromInstance(`cameras.${instanceId}`, `startCamera/${name}`, this.onCameras)
                     .catch(e => console.error(e));
             }
         }
     }
 
     render() {
-        const content = <div
-            style={styles.imageContainer}
-        >
-            {this.state.loading && this.state.alive && <CircularProgress style={styles.progress} />}
-            {!this.state.alive ? <div
-                style={{ position: 'absolute', top: 0, left: 0 }}
-            >
-                {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
-            </div> : null}
-            <canvas
-                ref={this.videoRef}
-                style={styles.camera}
-            ></canvas>
-        </div>;
+        const content = (
+            <div style={styles.imageContainer}>
+                {this.state.loading && this.state.alive && <CircularProgress style={styles.progress} />}
+                {!this.state.alive ? (
+                    <div style={{ position: 'absolute', top: 0, left: 0 }}>
+                        {Generic.t('Camera instance %s inactive', (this.props.rxData.camera || '').split('/')[0])}
+                    </div>
+                ) : null}
+                <canvas
+                    ref={this.videoRef}
+                    style={styles.camera}
+                ></canvas>
+            </div>
+        );
 
         return content;
     }

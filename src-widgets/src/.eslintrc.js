@@ -17,10 +17,7 @@ module.exports = {
         ecmaVersion: 'latest',
         sourceType: 'module',
     },
-    plugins: [
-        'only-warn',
-        'react',
-    ],
+    plugins: ['only-warn', 'react'],
     ignorePatterns: ['lib/*.js'],
     rules: {
         'arrow-parens': [1, 'as-needed'],
