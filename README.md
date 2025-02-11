@@ -35,4 +35,4 @@ User: sip:1060@sip.iobroker.net
 ## License
 All rights reserved.
 
-Copyright (c) 2023-2024 Denis Haev <dogafox@gmail.com>
+Copyright (c) 2023-2025 Denis Haev <dogafox@gmail.com>
