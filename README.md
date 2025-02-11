@@ -20,6 +20,9 @@ User: sip:1060@sip.iobroker.net
     ### **WORK IN PROGRESS**
 -->
 ## Changelog
+### **WORK IN PROGRESS**
+* (bluefox) Activated prettier
+
 ### 0.2.0 (2024-07-07)
 * (bluefox) removed withStyles package
 
