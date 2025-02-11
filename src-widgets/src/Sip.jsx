@@ -15,7 +15,13 @@ import {
     DialogContentText,
     DialogActions,
 } from '@mui/material';
-import { Call, CallEnd, Check, Mic, VolumeUp } from '@mui/icons-material';
+import {
+    Call,
+    CallEnd,
+    Check,
+    Mic,
+    VolumeUp,
+} from '@mui/icons-material';
 
 import Generic from './Generic';
 import SnapshotCamera from './SnapshotCamera';

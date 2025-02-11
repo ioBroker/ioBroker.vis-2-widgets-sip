@@ -179,7 +179,10 @@ class SnapshotCamera extends Component {
                             left: 0,
                         }}
                     >
-                        <div style={{ color: 'red' }}>{Generic.t('Cannot load URL')}:</div>
+                        <div style={{ color: 'red' }}>
+                            {Generic.t('Cannot load URL')}
+                            :
+                        </div>
                         <div>{this.getUrl(true)}</div>
                     </div>
                 ) : null}

@@ -20,7 +20,7 @@ User: sip:1060@sip.iobroker.net
     ### **WORK IN PROGRESS**
 -->
 ## Changelog
-### 0.2.1 (2025-02-11)
+### **WORK IN PROGRESS**
 * (bluefox) Activated prettier
 
 ### 0.2.0 (2024-07-07)
