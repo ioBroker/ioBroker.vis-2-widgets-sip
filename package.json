@@ -49,7 +49,8 @@
     "release-major": "release-script major --yes",
     "test": "mocha ./test/*.test.js",
     "update-packages": "npx -y npm-check-updates --upgrade && cd src-widgets && npx -y npm-check-updates --upgrade && cd ..",
-    "npm": "npm i && cd src-widgets && npm i -f"
+    "npm": "npm i && cd src-widgets && npm i -f",
+    "widgets-copy": "node tasks --widgets-copy"
   },
   "bugs": {
     "url": "https://github.com/ioBroker/ioBroker.vis-2-widgets-sip/issues"

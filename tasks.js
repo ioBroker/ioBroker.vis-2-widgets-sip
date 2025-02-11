@@ -14,25 +14,16 @@ function cleanWidget() {
     deleteFoldersRecursive(`${__dirname}/widgets`);
 }
 
-cleanWidget();
-const npmPromise = !existsSync(`${__dirname}/src-widgets/node_modules`)
-    ? npmInstall(`${__dirname}/src-widgets/`)
-    : Promise.resolve();
-
-npmPromise
-    .then(() => buildHelper.buildWidgets(__dirname, `${__dirname}/src-widgets/`))
-    .then(() => copyAllFilesWidget());
-
 function copyAllFilesWidget() {
+    deleteFoldersRecursive(`${__dirname}/widgets`);
     copyFiles([`src-widgets/build/*.js`], `widgets/${adapterName}`);
     copyFiles([`src-widgets/build/img/*`], `widgets/${adapterName}/img`);
     copyFiles([`src-widgets/build/*.map`], `widgets/${adapterName}`);
 
-    let files = [`src-widgets/build/static/*`, ...buildHelper.ignoreFiles(`src-widgets/`)];
+    let files = [`src-widgets/build/static/**/*`, ...buildHelper.ignoreFiles(`src-widgets/`)];
     copyFiles(files, `widgets/${adapterName}/static`);
     copyFiles(
         [
-            'src-widgets/build/static/js/*emotion_styled_dist*',
             'src-widgets/build/static/js/*react-transition-group_esm*',
             'src-widgets/build/static/js/*mui_system_colorManipulator*',
         ],
@@ -73,4 +64,20 @@ function copyAllFilesWidget() {
             resolve(null);
         }, 500),
     );
+}
+
+if (process.argv.find(arg => arg.includes('--widgets-copy'))) {
+    copyAllFilesWidget().catch(e => {
+        console.error('Cannot copy files: ' + e);
+        process.exit(10);
+    });
+} else {
+    cleanWidget();
+    const npmPromise = existsSync(`${__dirname}/src-widgets/node_modules`)
+        ? Promise.resolve()
+        : npmInstall(`${__dirname}/src-widgets/`);
+
+    npmPromise
+        .then(() => buildHelper.buildWidgets(__dirname, `${__dirname}/src-widgets/`))
+        .then(() => copyAllFilesWidget());
 }
